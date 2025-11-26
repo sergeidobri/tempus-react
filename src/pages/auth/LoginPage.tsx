@@ -1,7 +1,7 @@
 import tempusPhoto from "@/assets/main.jpg";
 
 import { Link } from "@tanstack/react-router";
-import { Route as registerRoute } from "@/routes/__auth/auth/register";
+import { Route as registerRoute } from "@/routes/auth/register";
 import LoginForm from "@/features/auth/components/LoginForm";
 
 const LoginPage = () => {

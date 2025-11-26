@@ -1,5 +1,4 @@
 import {
-  type CalendarEvent,
   getMonthData,
   isSameDay,
   EVENT_COLORS,
@@ -9,11 +8,12 @@ import {
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import SetViewButtons from "./SetViewButtons";
 import type { ViewMode } from "@/App";
+import type { TaskViewModel } from "@/types/tasks";
 
 interface MonthCalendarProps {
   currentDate: Date;
   selectedDate: Date;
-  events: CalendarEvent[];
+  events: TaskViewModel[];
   onDateSelect: (date: Date) => void;
   onMonthChange: (increment: number) => void;
   setViewMode: (mode: ViewMode) => void;
@@ -173,18 +173,18 @@ export function MonthCalendar({
                         style={{
                           backgroundColor: `${
                             EVENT_COLORS.find(
-                              (elem) => elem.label == event.category
+                              (elem) => elem.label == event.category1Id
                             )?.color
                               ? hexToRgba(
                                   EVENT_COLORS.find(
-                                    (elem) => elem.label == event.category
+                                    (elem) => elem.label == event.category1Id
                                   )?.color,
                                   0.1
                                 )
                               : "transparent"
                           }`,
                           color: EVENT_COLORS.find(
-                            (elem) => elem.label == event.category
+                            (elem) => elem.label == event.category1Id
                           )?.color,
                         }}
                       >

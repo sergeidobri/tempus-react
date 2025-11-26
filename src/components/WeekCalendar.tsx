@@ -1,5 +1,4 @@
 import {
-  type CalendarEvent,
   getEventsForDay,
   EVENT_COLORS,
   isSameDay,
@@ -8,11 +7,12 @@ import {
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import SetViewButtons from "./SetViewButtons";
 import { type ViewMode } from "@/App";
+import type { TaskViewModel } from "@/types/tasks";
 
 interface WeekCalendarProps {
   currentDate: Date;
   selectedDate: Date;
-  events: CalendarEvent[];
+  events: TaskViewModel[];
   onDateSelect: (date: Date) => void;
   onWeekChange: (increment: number) => void;
   setViewMode: (mode: ViewMode) => void;
@@ -55,9 +55,15 @@ export function WeekCalendar({
     return `${hour.toString().padStart(2, "0")}:00`;
   });
 
-  const getEventPosition = (event: CalendarEvent) => {
-    const [startHour, startMin] = event.startTime.split(":").map(Number);
-    const [endHour, endMin] = event.endTime.split(":").map(Number);
+  const getEventPosition = (event: TaskViewModel) => {
+    const [startHour, startMin] = event.startDate
+      .split("T")[1]
+      .split(":")
+      .map(Number);
+    const [endHour, endMin] = event.endDate
+      .split("T")[1]
+      .split(":")
+      .map(Number);
 
     const duration = endHour * 60 + endMin - (startHour * 60 + startMin);
 
@@ -193,7 +199,8 @@ export function WeekCalendar({
                   {/* Render events that start in this hour */}
                   {dayEvents
                     .filter((event) => {
-                      const [startHour] = event.startTime
+                      const [startHour] = event.startDate
+                        .split("T")[1]
                         .split(":")
                         .map(Number);
                       return startHour === hour;
@@ -208,11 +215,11 @@ export function WeekCalendar({
                             ...position,
                             backgroundColor: `${
                               EVENT_COLORS.find(
-                                (elem) => elem.label == event.category
+                                (elem) => elem.label == event.category1Id
                               )?.color
                                 ? hexToRgba(
                                     EVENT_COLORS.find(
-                                      (elem) => elem.label == event.category
+                                      (elem) => elem.label == event.category1Id
                                     )?.color,
                                     0.2
                                   )
@@ -220,7 +227,7 @@ export function WeekCalendar({
                             }`,
                             borderLeft: `3px solid ${
                               EVENT_COLORS.find(
-                                (elem) => elem.label == event.category
+                                (elem) => elem.label == event.category1Id
                               )?.color
                             }`,
                             zIndex: 10 + eventIdx,
@@ -230,15 +237,17 @@ export function WeekCalendar({
                             className="truncate"
                             style={{
                               color: EVENT_COLORS.find((elem) => {
-                                console.log(elem.label, event.category);
-                                return elem.label == event.category;
+                                return elem.label == event.category1Id;
                               })?.color,
                             }}
                           >
                             {event.title}
                           </div>
                           <div className="text-[10px] opacity-70">
-                            {event.startTime} - {event.endTime}
+                            {event.startDate.split("T")[1].split(":")[0]}:
+                            {event.startDate.split("T")[1].split(":")[1]} -{" "}
+                            {event.endDate.split("T")[1].split(":")[0]}:
+                            {event.endDate.split("T")[1].split(":")[1]}
                           </div>
                         </div>
                       );

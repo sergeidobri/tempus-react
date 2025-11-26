@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { type CalendarEvent } from "../utils/calendar";
 import { X } from "lucide-react";
+import type { TaskViewModel } from "@/types/tasks";
 
 export type Category =
   | "Образование"
@@ -20,7 +20,7 @@ export type Category =
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (event: Omit<CalendarEvent, "id">) => void;
+  onSave: (event: Omit<TaskViewModel, "id">) => void;
   initialDate?: Date;
 }
 
@@ -50,12 +50,13 @@ export function EventModal({
     if (!title.trim()) return;
 
     onSave({
+      authorId: "user.id", // заглушка
+      isShared: false,
       title,
-      date: new Date(date),
-      startTime,
-      endTime,
-      category,
-      location: location || undefined,
+      startDate: `${date}T${startTime}`,
+      endDate: `${date}T${endTime}`,
+      category1Id: category,
+      address: location || undefined,
       description: description || undefined,
     });
 

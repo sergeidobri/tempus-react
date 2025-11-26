@@ -9,75 +9,68 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as _authRouteImport } from './routes/__auth'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as _authAuthRegisterRouteImport } from './routes/__auth/auth/register'
-import { Route as _authAuthLogoutRouteImport } from './routes/__auth/auth/logout'
-import { Route as _authAuthLoginRouteImport } from './routes/__auth/auth/login'
-import { Route as _authAuthConfirmEmailSentRouteImport } from './routes/__auth/auth/confirm-email-sent'
-import { Route as _authAuthConfirmEmailRouteImport } from './routes/__auth/auth/confirm-email'
+import { Route as AuthRegisterRouteImport } from './routes/auth/register'
+import { Route as AuthLogoutRouteImport } from './routes/auth/logout'
+import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AuthConfirmEmailSentRouteImport } from './routes/auth/confirm-email-sent'
+import { Route as AuthConfirmEmailRouteImport } from './routes/auth/confirm-email'
 
-const _authRoute = _authRouteImport.update({
-  id: '/__auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const _authAuthRegisterRoute = _authAuthRegisterRouteImport.update({
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
   id: '/auth/register',
   path: '/auth/register',
-  getParentRoute: () => _authRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const _authAuthLogoutRoute = _authAuthLogoutRouteImport.update({
+const AuthLogoutRoute = AuthLogoutRouteImport.update({
   id: '/auth/logout',
   path: '/auth/logout',
-  getParentRoute: () => _authRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const _authAuthLoginRoute = _authAuthLoginRouteImport.update({
+const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
   path: '/auth/login',
-  getParentRoute: () => _authRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const _authAuthConfirmEmailSentRoute =
-  _authAuthConfirmEmailSentRouteImport.update({
-    id: '/auth/confirm-email-sent',
-    path: '/auth/confirm-email-sent',
-    getParentRoute: () => _authRoute,
-  } as any)
-const _authAuthConfirmEmailRoute = _authAuthConfirmEmailRouteImport.update({
+const AuthConfirmEmailSentRoute = AuthConfirmEmailSentRouteImport.update({
+  id: '/auth/confirm-email-sent',
+  path: '/auth/confirm-email-sent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthConfirmEmailRoute = AuthConfirmEmailRouteImport.update({
   id: '/auth/confirm-email',
   path: '/auth/confirm-email',
-  getParentRoute: () => _authRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth/confirm-email': typeof _authAuthConfirmEmailRoute
-  '/auth/confirm-email-sent': typeof _authAuthConfirmEmailSentRoute
-  '/auth/login': typeof _authAuthLoginRoute
-  '/auth/logout': typeof _authAuthLogoutRoute
-  '/auth/register': typeof _authAuthRegisterRoute
+  '/auth/confirm-email': typeof AuthConfirmEmailRoute
+  '/auth/confirm-email-sent': typeof AuthConfirmEmailSentRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/logout': typeof AuthLogoutRoute
+  '/auth/register': typeof AuthRegisterRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth/confirm-email': typeof _authAuthConfirmEmailRoute
-  '/auth/confirm-email-sent': typeof _authAuthConfirmEmailSentRoute
-  '/auth/login': typeof _authAuthLoginRoute
-  '/auth/logout': typeof _authAuthLogoutRoute
-  '/auth/register': typeof _authAuthRegisterRoute
+  '/auth/confirm-email': typeof AuthConfirmEmailRoute
+  '/auth/confirm-email-sent': typeof AuthConfirmEmailSentRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/logout': typeof AuthLogoutRoute
+  '/auth/register': typeof AuthRegisterRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/__auth': typeof _authRouteWithChildren
-  '/__auth/auth/confirm-email': typeof _authAuthConfirmEmailRoute
-  '/__auth/auth/confirm-email-sent': typeof _authAuthConfirmEmailSentRoute
-  '/__auth/auth/login': typeof _authAuthLoginRoute
-  '/__auth/auth/logout': typeof _authAuthLogoutRoute
-  '/__auth/auth/register': typeof _authAuthRegisterRoute
+  '/auth/confirm-email': typeof AuthConfirmEmailRoute
+  '/auth/confirm-email-sent': typeof AuthConfirmEmailSentRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/logout': typeof AuthLogoutRoute
+  '/auth/register': typeof AuthRegisterRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -99,28 +92,24 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/__auth'
-    | '/__auth/auth/confirm-email'
-    | '/__auth/auth/confirm-email-sent'
-    | '/__auth/auth/login'
-    | '/__auth/auth/logout'
-    | '/__auth/auth/register'
+    | '/auth/confirm-email'
+    | '/auth/confirm-email-sent'
+    | '/auth/login'
+    | '/auth/logout'
+    | '/auth/register'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  _authRoute: typeof _authRouteWithChildren
+  AuthConfirmEmailRoute: typeof AuthConfirmEmailRoute
+  AuthConfirmEmailSentRoute: typeof AuthConfirmEmailSentRoute
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthLogoutRoute: typeof AuthLogoutRoute
+  AuthRegisterRoute: typeof AuthRegisterRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/__auth': {
-      id: '/__auth'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof _authRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -128,65 +117,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/__auth/auth/register': {
-      id: '/__auth/auth/register'
+    '/auth/register': {
+      id: '/auth/register'
       path: '/auth/register'
       fullPath: '/auth/register'
-      preLoaderRoute: typeof _authAuthRegisterRouteImport
-      parentRoute: typeof _authRoute
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/__auth/auth/logout': {
-      id: '/__auth/auth/logout'
+    '/auth/logout': {
+      id: '/auth/logout'
       path: '/auth/logout'
       fullPath: '/auth/logout'
-      preLoaderRoute: typeof _authAuthLogoutRouteImport
-      parentRoute: typeof _authRoute
+      preLoaderRoute: typeof AuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/__auth/auth/login': {
-      id: '/__auth/auth/login'
+    '/auth/login': {
+      id: '/auth/login'
       path: '/auth/login'
       fullPath: '/auth/login'
-      preLoaderRoute: typeof _authAuthLoginRouteImport
-      parentRoute: typeof _authRoute
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/__auth/auth/confirm-email-sent': {
-      id: '/__auth/auth/confirm-email-sent'
+    '/auth/confirm-email-sent': {
+      id: '/auth/confirm-email-sent'
       path: '/auth/confirm-email-sent'
       fullPath: '/auth/confirm-email-sent'
-      preLoaderRoute: typeof _authAuthConfirmEmailSentRouteImport
-      parentRoute: typeof _authRoute
+      preLoaderRoute: typeof AuthConfirmEmailSentRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/__auth/auth/confirm-email': {
-      id: '/__auth/auth/confirm-email'
+    '/auth/confirm-email': {
+      id: '/auth/confirm-email'
       path: '/auth/confirm-email'
       fullPath: '/auth/confirm-email'
-      preLoaderRoute: typeof _authAuthConfirmEmailRouteImport
-      parentRoute: typeof _authRoute
+      preLoaderRoute: typeof AuthConfirmEmailRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface _authRouteChildren {
-  _authAuthConfirmEmailRoute: typeof _authAuthConfirmEmailRoute
-  _authAuthConfirmEmailSentRoute: typeof _authAuthConfirmEmailSentRoute
-  _authAuthLoginRoute: typeof _authAuthLoginRoute
-  _authAuthLogoutRoute: typeof _authAuthLogoutRoute
-  _authAuthRegisterRoute: typeof _authAuthRegisterRoute
-}
-
-const _authRouteChildren: _authRouteChildren = {
-  _authAuthConfirmEmailRoute: _authAuthConfirmEmailRoute,
-  _authAuthConfirmEmailSentRoute: _authAuthConfirmEmailSentRoute,
-  _authAuthLoginRoute: _authAuthLoginRoute,
-  _authAuthLogoutRoute: _authAuthLogoutRoute,
-  _authAuthRegisterRoute: _authAuthRegisterRoute,
-}
-
-const _authRouteWithChildren = _authRoute._addFileChildren(_authRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  _authRoute: _authRouteWithChildren,
+  AuthConfirmEmailRoute: AuthConfirmEmailRoute,
+  AuthConfirmEmailSentRoute: AuthConfirmEmailSentRoute,
+  AuthLoginRoute: AuthLoginRoute,
+  AuthLogoutRoute: AuthLogoutRoute,
+  AuthRegisterRoute: AuthRegisterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

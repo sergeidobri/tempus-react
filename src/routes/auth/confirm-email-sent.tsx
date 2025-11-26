@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/__auth/auth/confirm-email-sent')({
+export const Route = createFileRoute('/auth/confirm-email-sent')({
   component: RouteComponent,
 })
 

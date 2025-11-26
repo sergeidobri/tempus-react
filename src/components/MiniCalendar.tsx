@@ -1,5 +1,5 @@
+import type { TaskViewModel } from "@/types/tasks";
 import {
-  type CalendarEvent,
   getMonthData,
   isSameDay,
   EVENT_COLORS,
@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 interface MiniCalendarProps {
   currentDate: Date;
   selectedDate: Date;
-  events: CalendarEvent[];
+  events: TaskViewModel[];
   onDateSelect: (date: Date) => void;
   onMonthChange: (increment: number) => void;
 }
@@ -147,7 +147,7 @@ export function MiniCalendar({
                         className="w-1 h-1 rounded-full"
                         style={{
                           backgroundColor: EVENT_COLORS.find(
-                            (elem) => elem.label == event.category
+                            (elem) => elem.label == event.category1Id
                           )?.color,
                         }}
                       />

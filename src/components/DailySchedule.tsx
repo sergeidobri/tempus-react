@@ -1,5 +1,5 @@
+import type { TaskViewModel } from "@/types/tasks";
 import {
-  type CalendarEvent,
   getEventsForDay,
   formatDate,
   EVENT_COLORS,
@@ -9,8 +9,8 @@ import { Sun } from "lucide-react";
 
 interface DailyScheduleProps {
   selectedDate: Date;
-  events: CalendarEvent[];
-  onEventClick?: (event: CalendarEvent) => void;
+  events: TaskViewModel[];
+  onEventClick?: (event: TaskViewModel) => void;
 }
 
 export function DailySchedule({
@@ -56,7 +56,8 @@ export function DailySchedule({
               <div className="flex items-start gap-3">
                 {/* Time */}
                 <div className="text-[#4A403A] min-w-[3rem]">
-                  {event.startTime}
+                  {event.startDate.split("T")[1].split(":")[0]}:
+                  {event.startDate.split("T")[1].split(":")[1]}
                 </div>
 
                 {/* Event Details */}
@@ -66,18 +67,21 @@ export function DailySchedule({
                       className="w-2 h-2 rounded-full flex-shrink-0"
                       style={{
                         backgroundColor: EVENT_COLORS.find(
-                          (elem) => elem.label == event.category
+                          (elem) => elem.label == event.category1Id
                         )?.color,
                       }}
                     />
                     <p className="text-[#4A403A]">{event.title}</p>
                   </div>
                   <p className="text-xs text-[#4A403A]/60">
-                    {event.startTime}-{event.endTime}
+                    {event.startDate.split("T")[1].split(":")[0]}:
+                    {event.startDate.split("T")[1].split(":")[1]} -{" "}
+                    {event.endDate.split("T")[1].split(":")[0]}:
+                    {event.endDate.split("T")[1].split(":")[1]}
                   </p>
-                  {event.location && (
+                  {event.address && (
                     <p className="text-xs text-[#4A403A]/60 mt-1">
-                      📍 {event.location}
+                      📍 {event.address}
                     </p>
                   )}
                 </div>

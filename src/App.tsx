@@ -4,9 +4,8 @@ import { MonthCalendar } from "./components/MonthCalendar";
 import { WeekCalendar } from "./components/WeekCalendar";
 import { DayCalendar } from "./components/DayCalendar";
 import { DailySchedule } from "./components/DailySchedule";
-import type { CalendarEvent } from "./utils/calendar";
-import { EventModal } from "./components/EventModal";
-import { MainHeader } from "./components/MainHeader";
+import { tasksApi } from "./api/tasks/api";
+import { useQuery } from "@tanstack/react-query";
 
 export type ViewMode = "day" | "week" | "month";
 
@@ -14,62 +13,20 @@ export default function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const [events, setEvents] = useState<CalendarEvent[]>([
-    {
-      id: "1",
-      title: "Погулять с собакой",
-      date: new Date(2025, 9, 5),
-      startTime: "9:00",
-      endTime: "9:30",
-      category: "Развлечения",
-    },
-    {
-      id: "2",
-      title: "Продолжить изучение линейной алгебры",
-      date: new Date(2025, 9, 5),
-      startTime: "11:00",
-      endTime: "12:30",
-      category: "Образование",
-    },
-    {
-      id: "3",
-      title: "Свидание с Кларой",
-      date: new Date(2025, 9, 5),
-      startTime: "12:00",
-      endTime: "14:00",
-      category: "Встречи",
-    },
-    {
-      id: "4",
-      title: "Встреча с коллегами",
-      date: new Date(2025, 9, 1),
-      startTime: "10:00",
-      endTime: "11:00",
-      category: "Встречи",
-    },
-    {
-      id: "5",
-      title: "Подготовка презентации",
-      date: new Date(2025, 9, 17),
-      startTime: "14:00",
-      endTime: "16:00",
-      category: "Работа",
-    },
-    {
-      id: "6",
-      title: "Йога",
-      date: new Date(2025, 9, 17),
-      startTime: "18:00",
-      endTime: "19:30",
-      category: "Хобби",
-    },
-  ]); // подгружается с бэка в лоадере, не тут
+  const {
+    data: events,
+    isPending,
+    isError,
+  } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: tasksApi.get,
+  });
 
   const [currentDateSmallCalendar, setCurrentDateSmallCalendar] = useState(
     new Date()
   );
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("month");
   const getViewMode = () => viewMode;
 
@@ -102,18 +59,21 @@ export default function App() {
     setSelectedDate(newDate);
     setCurrentDate(newDate);
   };
-  const handleCreateEvent = (eventData: Omit<CalendarEvent, "id">) => {
-    const newEvent: CalendarEvent = {
-      ...eventData,
-      id: Date.now().toString(),
-    };
-    setEvents([...events, newEvent]);
-  };
-
+  // const handleCreateEvent = (eventData: Omit<CalendarEvent, "id">) => {
+  //   const newEvent: CalendarEvent = {
+  //     ...eventData,
+  //     id: Date.now().toString(),
+  //   };
+  //   setEvents([...events, newEvent]);
+  // };
+  if (isPending) {
+    return <div>Loading</div>;
+  }
+  if (isError) {
+    return <div>Error</div>;
+  }
   return (
     <>
-      <MainHeader onCreateEvent={() => setIsModalOpen(true)} />
-
       {/* Main Content */}
       <div className="relative z-10 max-w-[1400px] mx-auto p-6">
         <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
@@ -169,14 +129,6 @@ export default function App() {
           </div>
         </div>
       </div>
-
-      {/* Event Modal */}
-      <EventModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleCreateEvent}
-        initialDate={selectedDate}
-      />
     </>
   );
 }

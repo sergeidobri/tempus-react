@@ -2,7 +2,7 @@ import { authApi } from "@/api/auth/api";
 import { useAuthStore } from "@/store/authStore";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/__auth/auth/logout")({
+export const Route = createFileRoute("/auth/logout")({
   beforeLoad: async () => {
     try {
       await authApi.logout();

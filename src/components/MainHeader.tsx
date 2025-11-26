@@ -2,7 +2,7 @@ import { Plus, ChevronDown, User, Settings, LogOut } from "lucide-react";
 import logo from "@/assets/logo.svg";
 import { useState } from "react";
 import { Route as mainRoute } from "@/routes/index";
-import { Route as logoutRoute } from "@/routes/__auth/auth/logout";
+import { Route as logoutRoute } from "@/routes/auth/logout";
 import { Link } from "@tanstack/react-router";
 
 interface HeaderProps {

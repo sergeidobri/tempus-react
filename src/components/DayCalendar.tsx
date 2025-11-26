@@ -1,5 +1,4 @@
 import {
-  type CalendarEvent,
   getEventsForDay,
   EVENT_COLORS,
   isToday,
@@ -8,10 +7,11 @@ import {
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import SetViewButtons from "./SetViewButtons";
 import type { ViewMode } from "@/App";
+import type { TaskViewModel } from "@/types/tasks";
 
 interface DayCalendarProps {
   selectedDate: Date;
-  events: CalendarEvent[];
+  events: TaskViewModel[];
   onDateChange: (increment: number) => void;
   setViewMode: (mode: ViewMode) => void;
   getViewMode: () => ViewMode;
@@ -33,9 +33,15 @@ export function DayCalendar({
     return `${hour.toString().padStart(2, "0")}:00`;
   });
 
-  const getEventPosition = (event: CalendarEvent) => {
-    const [startHour, startMin] = event.startTime.split(":").map(Number);
-    const [endHour, endMin] = event.endTime.split(":").map(Number);
+  const getEventPosition = (event: TaskViewModel) => {
+    const [startHour, startMin] = event.startDate
+      .split("T")[1]
+      .split(":")
+      .map(Number);
+    const [endHour, endMin] = event.endDate
+      .split("T")[1]
+      .split(":")
+      .map(Number);
 
     const startMinutes = startHour * 60 + startMin;
     const duration = endHour * 60 + endMin - (startHour * 60 + startMin);
@@ -135,18 +141,18 @@ export function DayCalendar({
                 style={{
                   ...position,
                   backgroundColor: `${
-                    EVENT_COLORS.find((elem) => elem.label == event.category)
+                    EVENT_COLORS.find((elem) => elem.label == event.category1Id)
                       ?.color
                       ? hexToRgba(
                           EVENT_COLORS.find(
-                            (elem) => elem.label == event.category
+                            (elem) => elem.label == event.category1Id
                           )?.color,
                           0.1
                         )
                       : "transparent"
                   }`,
                   borderLeft: `4px solid ${
-                    EVENT_COLORS.find((elem) => elem.label == event.category)
+                    EVENT_COLORS.find((elem) => elem.label == event.category1Id)
                       ?.color
                   }`,
                 }}
@@ -156,7 +162,7 @@ export function DayCalendar({
                     className="text-[#4A403A]"
                     style={{
                       color: EVENT_COLORS.find(
-                        (elem) => elem.label == event.category
+                        (elem) => elem.label == event.category1Id
                       )?.color,
                     }}
                   >
@@ -166,17 +172,20 @@ export function DayCalendar({
                     className="w-3 h-3 rounded-full flex-shrink-0 ml-2"
                     style={{
                       backgroundColor: EVENT_COLORS.find(
-                        (elem) => elem.label == event.category
+                        (elem) => elem.label == event.category1Id
                       )?.color,
                     }}
                   />
                 </div>
                 <p className="text-sm text-[#4A403A]/70 mb-1">
-                  {event.startTime} - {event.endTime}
+                  {event.startDate.split("T")[1].split(":")[0]}:
+                  {event.startDate.split("T")[1].split(":")[1]} -{" "}
+                  {event.endDate.split("T")[1].split(":")[0]}:
+                  {event.endDate.split("T")[1].split(":")[1]}
                 </p>
-                {event.location && (
+                {event.address && (
                   <p className="text-sm text-[#4A403A]/60">
-                    📍 {event.location}
+                    📍 {event.address}
                   </p>
                 )}
                 {event.description && (

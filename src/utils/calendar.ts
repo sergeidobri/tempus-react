@@ -1,15 +1,15 @@
-import type { Category } from "@/components/EventModal";
+import type { TaskViewModel } from "@/types/tasks";
 
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  date: Date;
-  startTime: string;
-  endTime: string;
-  category: Category;
-  location?: string;
-  description?: string;
-}
+// export interface CalendarEvent {
+//   id: string;
+//   title: string;
+//   date: Date;
+//   startTime: string;
+//   endTime: string;
+//   category: Category;
+//   location?: string;
+//   description?: string;
+// }
 
 export const EVENT_COLORS = [
   { label: "Образование", color: "#E200B1" },
@@ -120,18 +120,18 @@ export function isSameDay(date1: Date, date2: Date): boolean {
 }
 
 export function getEventsForDay(
-  events: CalendarEvent[],
+  events: TaskViewModel[],
   date: Date
-): CalendarEvent[] {
+): TaskViewModel[] {
   return events
-    .filter((event) => isSameDay(event.date, date))
+    .filter((event) => isSameDay(new Date(event.startDate), date))
     .sort((a, b) => {
       const timeA =
-        parseInt(a.startTime.split(":")[0]) * 60 +
-        parseInt(a.startTime.split(":")[1]);
+        parseInt(a.startDate.split("T")[1].split(":")[0]) * 60 +
+        parseInt(a.startDate.split("T")[1].split(":")[1]);
       const timeB =
-        parseInt(b.startTime.split(":")[0]) * 60 +
-        parseInt(b.startTime.split(":")[1]);
+        parseInt(b.startDate.split("T")[1].split(":")[0]) * 60 +
+        parseInt(b.startDate.split("T")[1].split(":")[1]);
       return timeA - timeB;
     });
 }
