@@ -1,26 +1,19 @@
 import { useState } from "react";
-import { type CalendarEvent } from "./utils/calendar";
-import { Header } from "./components/Header";
 import { MiniCalendar } from "./components/MiniCalendar";
 import { MonthCalendar } from "./components/MonthCalendar";
 import { WeekCalendar } from "./components/WeekCalendar";
 import { DayCalendar } from "./components/DayCalendar";
 import { DailySchedule } from "./components/DailySchedule";
+import type { CalendarEvent } from "./utils/calendar";
 import { EventModal } from "./components/EventModal";
+import { MainHeader } from "./components/MainHeader";
 
 export type ViewMode = "day" | "week" | "month";
 
 export default function App() {
-  const [currentDate, setCurrentDate] = useState(new Date()); // Текущая дата
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const [currentDateSmallCalendar, setCurrentDateSmallCalendar] = useState(
-    new Date()
-  );
-
-  const [viewMode, setViewMode] = useState<ViewMode>("month");
-  const getViewMode = () => viewMode;
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([
     {
       id: "1",
@@ -70,7 +63,15 @@ export default function App() {
       endTime: "19:30",
       category: "Хобби",
     },
-  ]); // подгружается с бэка
+  ]); // подгружается с бэка в лоадере, не тут
+
+  const [currentDateSmallCalendar, setCurrentDateSmallCalendar] = useState(
+    new Date()
+  );
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("month");
+  const getViewMode = () => viewMode;
 
   const handleMonthChange = (increment: number) => {
     const newDate = new Date(currentDate);
@@ -101,7 +102,6 @@ export default function App() {
     setSelectedDate(newDate);
     setCurrentDate(newDate);
   };
-
   const handleCreateEvent = (eventData: Omit<CalendarEvent, "id">) => {
     const newEvent: CalendarEvent = {
       ...eventData,
@@ -111,30 +111,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF5EB]">
-      {/* Custom Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <svg
-          className="absolute bottom-0 left-0 w-full h-[85vh]"
-          viewBox="0 0 1440 766"
-          fill="none"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M1160.8 765.001H0V11.7449L1160.8 765.001Z"
-            fill="#FFE3C7"
-            opacity="0.5"
-          />
-          <path
-            d="M1440 766H0V552.341L1440 0V766Z"
-            fill="#FFECD9"
-            opacity="0.3"
-          />
-        </svg>
-      </div>
-
-      {/* Header */}
-      <Header onCreateEvent={() => setIsModalOpen(true)} />
+    <>
+      <MainHeader onCreateEvent={() => setIsModalOpen(true)} />
 
       {/* Main Content */}
       <div className="relative z-10 max-w-[1400px] mx-auto p-6">
@@ -199,6 +177,6 @@ export default function App() {
         onSave={handleCreateEvent}
         initialDate={selectedDate}
       />
-    </div>
+    </>
   );
 }
