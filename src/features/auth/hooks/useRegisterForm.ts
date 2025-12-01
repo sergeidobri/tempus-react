@@ -20,16 +20,20 @@ export const useRegisterForm = () => {
   });
 
   const onSubmit = async (data: RegisterFormData) => {
+    console.log("start submitting");
     try {
+      console.log(data);
       await authApi.register({
         email: data.email,
         password: data.password,
-        firstName: data.firstName,
-        lastName: data.lastName,
+        firstName: "User",
+        lastName: "1337",
       });
 
+      console.log("success");
       navigate("/auth/confirm-email-sent");
     } catch (error: any) {
+      console.log("error", error);
       const message = error.response?.data?.message || "Неудачная авторизация";
       form.setError("root", { message });
     }

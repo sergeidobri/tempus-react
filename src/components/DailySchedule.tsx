@@ -2,8 +2,9 @@ import type { TaskViewModel } from "@/types/tasks";
 import {
   getEventsForDay,
   formatDate,
-  EVENT_COLORS,
   isToday,
+  formatTimeFromString as formatTime,
+  getColorByLabel,
 } from "../utils/calendar";
 import { Sun } from "lucide-react";
 
@@ -47,47 +48,46 @@ export function DailySchedule({
             Нет событий на этот день
           </p>
         ) : (
-          dayEvents.map((event) => (
-            <button
-              key={event.id}
-              onClick={() => onEventClick?.(event)}
-              className="w-full text-left p-3 rounded-lg hover:bg-[#FFF5EB] transition-colors border border-transparent hover:border-[#FFE3C7]"
-            >
-              <div className="flex items-start gap-3">
-                {/* Time */}
-                <div className="text-[#4A403A] min-w-[3rem]">
-                  {event.startDate.split("T")[1].split(":")[0]}:
-                  {event.startDate.split("T")[1].split(":")[1]}
-                </div>
-
-                {/* Event Details */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{
-                        backgroundColor: EVENT_COLORS.find(
-                          (elem) => elem.label == event.category1Id
-                        )?.color,
-                      }}
-                    />
-                    <p className="text-[#4A403A]">{event.title}</p>
+          dayEvents.map((event) => {
+            const eventColor = event.color
+              ? event.color
+              : getColorByLabel(event.category1Id);
+            return (
+              <button
+                key={event.id}
+                onClick={() => onEventClick?.(event)}
+                className="w-full text-left p-3 rounded-lg hover:bg-[#FFF5EB] transition-colors border border-transparent hover:border-[#FFE3C7]"
+              >
+                <div className="flex items-start gap-3">
+                  {/* Time */}
+                  <div className="text-[#4A403A] min-w-[3rem]">
+                    {formatTime(event.startDate)}
                   </div>
-                  <p className="text-xs text-[#4A403A]/60">
-                    {event.startDate.split("T")[1].split(":")[0]}:
-                    {event.startDate.split("T")[1].split(":")[1]} -{" "}
-                    {event.endDate.split("T")[1].split(":")[0]}:
-                    {event.endDate.split("T")[1].split(":")[1]}
-                  </p>
-                  {event.address && (
-                    <p className="text-xs text-[#4A403A]/60 mt-1">
-                      📍 {event.address}
+
+                  {/* Event Details */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div
+                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{
+                          backgroundColor: eventColor,
+                        }}
+                      />
+                      <p className="text-[#4A403A]">{event.title}</p>
+                    </div>
+                    <p className="text-xs text-[#4A403A]/60">
+                      {formatTime(event.startDate)}-{formatTime(event.endDate)}
                     </p>
-                  )}
+                    {event.address && (
+                      <p className="text-xs text-[#4A403A]/60 mt-1">
+                        📍 {event.address}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </button>
-          ))
+              </button>
+            );
+          })
         )}
       </div>
     </div>

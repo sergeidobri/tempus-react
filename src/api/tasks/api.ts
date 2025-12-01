@@ -2,6 +2,8 @@
 // import { TASKS_ENDPOINTS } from "./endpoints";
 
 import type { TaskViewModel } from "@/types/tasks";
+import type { CreateTaskRequest } from "./types";
+import { TASKS_ENDPOINTS } from "./endpoints";
 
 const events: TaskViewModel[] = [
   {
@@ -84,5 +86,10 @@ export const tasksApi = {
   get: () => {
     // return apiClient.get(TASKS_ENDPOINTS.GET_TASKS);
     return events;
+  },
+
+  createTask: (data: CreateTaskRequest) => {
+    // return apiClient.post(TASKS_ENDPOINTS.CREATE_TASK, data);
+    return data;
   },
 };

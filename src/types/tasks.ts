@@ -1,5 +1,3 @@
-import type { Category } from "@/components/EventModal";
-
 export interface TaskViewModel {
   id: string;
   authorId: string;
@@ -14,6 +12,24 @@ export interface TaskViewModel {
 
   category1Id?: Category;
 }
+
+export const CATEGORIES = [
+  "Образование",
+  "Работа",
+  "Хобби",
+  "Здоровье",
+  "Спорт",
+  "Развлечения",
+  "Путешествие",
+  "Покупки",
+  "Документы",
+  "Встречи",
+  "Быт",
+  "Отношения",
+  "Красота",
+] as const;
+
+export type Category = (typeof CATEGORIES)[number];
 
 export interface AuthorViewModel {
   id: string;

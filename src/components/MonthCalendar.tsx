@@ -1,9 +1,9 @@
 import {
   getMonthData,
   isSameDay,
-  EVENT_COLORS,
   getEventsForDay,
   hexToRgba,
+  getColorByLabel,
 } from "../utils/calendar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import SetViewButtons from "./SetViewButtons";
@@ -148,7 +148,7 @@ export function MonthCalendar({
                   className={`
                     text-sm mb-1 
                     ${
-                      isTodayDate
+                      isTodayDate && isCurrentMonth
                         ? "w-6 h-6 rounded-full bg-[#CFA492] text-white flex items-center justify-center"
                         : ""
                     }
@@ -166,31 +166,23 @@ export function MonthCalendar({
                 {/* Event indicators */}
                 {dayEvents.length > 0 && isCurrentMonth && (
                   <div className="space-y-1 w-full">
-                    {dayEvents.slice(0, 2).map((event, idx) => (
-                      <div
-                        key={idx}
-                        className="text-xs px-1.5 py-0.5 rounded truncate"
-                        style={{
-                          backgroundColor: `${
-                            EVENT_COLORS.find(
-                              (elem) => elem.label == event.category1Id
-                            )?.color
-                              ? hexToRgba(
-                                  EVENT_COLORS.find(
-                                    (elem) => elem.label == event.category1Id
-                                  )?.color,
-                                  0.1
-                                )
-                              : "transparent"
-                          }`,
-                          color: EVENT_COLORS.find(
-                            (elem) => elem.label == event.category1Id
-                          )?.color,
-                        }}
-                      >
-                        {event.title}
-                      </div>
-                    ))}
+                    {dayEvents.slice(0, 2).map((event, idx) => {
+                      const eventColor = event.color
+                        ? event.color
+                        : getColorByLabel(event.category1Id);
+                      return (
+                        <div
+                          key={idx}
+                          className="text-xs px-1.5 py-0.5 rounded truncate"
+                          style={{
+                            backgroundColor: `${hexToRgba(eventColor, 0.1)}`,
+                            color: eventColor,
+                          }}
+                        >
+                          {event.title}
+                        </div>
+                      );
+                    })}
                     {dayEvents.length > 2 && (
                       <div className="text-xs text-[#4A403A]/60 px-1.5">
                         еще +{dayEvents.length - 2}

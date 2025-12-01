@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRootRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useEffect, useState } from "react";
+import { ToastContainer } from "react-toastify";
 
 const queryClient = new QueryClient();
 
@@ -47,8 +48,18 @@ const RootLayout = () => {
         <EventModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          onSave={() => {}} // пока ивенты не сохраняются, потому что нет рута POST /api/tasks
-          initialDate={new Date()}
+        />
+
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
         />
       </div>
     </QueryClientProvider>

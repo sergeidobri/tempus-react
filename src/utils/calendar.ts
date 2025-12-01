@@ -1,4 +1,4 @@
-import type { TaskViewModel } from "@/types/tasks";
+import type { Category, TaskViewModel } from "@/types/tasks";
 
 // export interface CalendarEvent {
 //   id: string;
@@ -25,6 +25,7 @@ export const EVENT_COLORS = [
   { label: "Быт", color: "#683518ff" },
   { label: "Отношения", color: "#0004fcff" },
   { label: "Красота", color: "#25571bff" },
+  { label: "default", color: "#b4aa9cff" },
 ];
 
 export function getDaysInMonth(year: number, month: number): number {
@@ -168,4 +169,20 @@ export const hexToRgba = (hex: string | undefined, alpha = 0.2) => {
   const g = parseInt(cleanHex.substring(2, 4), 16);
   const b = parseInt(cleanHex.substring(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+export const getColorByLabel = (label: Category | undefined) => {
+  const fallback = EVENT_COLORS.find((obj) => obj.label == "default");
+  const fallbackColor = fallback ? fallback.color : "#000000";
+  const result = EVENT_COLORS.find((obj) => obj.label == label);
+
+  return result ? result.color : fallbackColor;
+};
+
+export const formatTime = (date: Date) => {
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+};
+
+export const formatTimeFromString = (date: string) => {
+  return formatTime(new Date(date));
 };

@@ -3,6 +3,8 @@ import {
   EVENT_COLORS,
   isToday,
   hexToRgba,
+  getColorByLabel,
+  formatTimeFromString as formatTime,
 } from "../utils/calendar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import SetViewButtons from "./SetViewButtons";
@@ -134,6 +136,9 @@ export function DayCalendar({
           {/* Events */}
           {dayEvents.map((event) => {
             const position = getEventPosition(event);
+            const eventColor = event.color
+              ? event.color
+              : getColorByLabel(event.category1Id);
             return (
               <div
                 key={event.id}
@@ -143,27 +148,17 @@ export function DayCalendar({
                   backgroundColor: `${
                     EVENT_COLORS.find((elem) => elem.label == event.category1Id)
                       ?.color
-                      ? hexToRgba(
-                          EVENT_COLORS.find(
-                            (elem) => elem.label == event.category1Id
-                          )?.color,
-                          0.1
-                        )
+                      ? hexToRgba(eventColor, 0.1)
                       : "transparent"
                   }`,
-                  borderLeft: `4px solid ${
-                    EVENT_COLORS.find((elem) => elem.label == event.category1Id)
-                      ?.color
-                  }`,
+                  borderLeft: `4px solid ${eventColor}`,
                 }}
               >
                 <div className="flex items-start justify-between mb-1">
                   <h4
                     className="text-[#4A403A]"
                     style={{
-                      color: EVENT_COLORS.find(
-                        (elem) => elem.label == event.category1Id
-                      )?.color,
+                      color: eventColor,
                     }}
                   >
                     {event.title}
@@ -171,17 +166,12 @@ export function DayCalendar({
                   <div
                     className="w-3 h-3 rounded-full flex-shrink-0 ml-2"
                     style={{
-                      backgroundColor: EVENT_COLORS.find(
-                        (elem) => elem.label == event.category1Id
-                      )?.color,
+                      backgroundColor: eventColor,
                     }}
                   />
                 </div>
                 <p className="text-sm text-[#4A403A]/70 mb-1">
-                  {event.startDate.split("T")[1].split(":")[0]}:
-                  {event.startDate.split("T")[1].split(":")[1]} -{" "}
-                  {event.endDate.split("T")[1].split(":")[0]}:
-                  {event.endDate.split("T")[1].split(":")[1]}
+                  {formatTime(event.startDate)}-{formatTime(event.endDate)}
                 </p>
                 {event.address && (
                   <p className="text-sm text-[#4A403A]/60">

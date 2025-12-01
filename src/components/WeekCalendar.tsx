@@ -1,8 +1,9 @@
 import {
   getEventsForDay,
-  EVENT_COLORS,
   isSameDay,
   hexToRgba,
+  getColorByLabel,
+  formatTimeFromString as formatTime,
 } from "../utils/calendar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import SetViewButtons from "./SetViewButtons";
@@ -183,13 +184,6 @@ export function WeekCalendar({
               const dayEvents = getEventsForDay(events, date);
               const [hour] = time.split(":").map(Number);
 
-              // Find events that overlap with this time slot
-              // const slotEvents = dayEvents.filter((event) => {
-              //   const [startHour] = event.startTime.split(":").map(Number);
-              //   const [endHour] = event.endTime.split(":").map(Number);
-              //   return startHour <= hour && endHour > hour;
-              // });
-
               return (
                 <div
                   key={`${dayIdx}-${time}`}
@@ -206,6 +200,9 @@ export function WeekCalendar({
                       return startHour === hour;
                     })
                     .map((event, eventIdx) => {
+                      const eventColor = event.color
+                        ? event.color
+                        : getColorByLabel(event.category1Id);
                       const position = getEventPosition(event);
                       return (
                         <div
@@ -213,41 +210,22 @@ export function WeekCalendar({
                           className="absolute left-0 right-0 mx-1 px-2 py-1 rounded text-xs overflow-hidden"
                           style={{
                             ...position,
-                            backgroundColor: `${
-                              EVENT_COLORS.find(
-                                (elem) => elem.label == event.category1Id
-                              )?.color
-                                ? hexToRgba(
-                                    EVENT_COLORS.find(
-                                      (elem) => elem.label == event.category1Id
-                                    )?.color,
-                                    0.2
-                                  )
-                                : "transparent"
-                            }`,
-                            borderLeft: `3px solid ${
-                              EVENT_COLORS.find(
-                                (elem) => elem.label == event.category1Id
-                              )?.color
-                            }`,
+                            backgroundColor: `${hexToRgba(eventColor, 0.2)}`,
+                            borderLeft: `3px solid ${eventColor}`,
                             zIndex: 10 + eventIdx,
                           }}
                         >
                           <div
                             className="truncate"
                             style={{
-                              color: EVENT_COLORS.find((elem) => {
-                                return elem.label == event.category1Id;
-                              })?.color,
+                              color: eventColor,
                             }}
                           >
                             {event.title}
                           </div>
                           <div className="text-[10px] opacity-70">
-                            {event.startDate.split("T")[1].split(":")[0]}:
-                            {event.startDate.split("T")[1].split(":")[1]} -{" "}
-                            {event.endDate.split("T")[1].split(":")[0]}:
-                            {event.endDate.split("T")[1].split(":")[1]}
+                            {formatTime(event.startDate)}-
+                            {formatTime(event.endDate)}
                           </div>
                         </div>
                       );

@@ -2,8 +2,8 @@ import type { TaskViewModel } from "@/types/tasks";
 import {
   getMonthData,
   isSameDay,
-  EVENT_COLORS,
   getEventsForDay,
+  getColorByLabel,
 } from "../utils/calendar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -125,7 +125,7 @@ export function MiniCalendar({
                   transition-all relative
                   ${!isCurrentMonth ? "text-[#4A403A]/30" : ""}
                   ${isWeekendDay && isCurrentMonth ? "text-[#CFA492]" : ""}
-                  ${isTodayDate ? "bg-[#CFA492] text-white" : ""}
+                  ${isTodayDate && isCurrentMonth ? "bg-[#CFA492] text-white" : ""}
                   ${
                     isSelected && isCurrentMonth && !isTodayDate
                       ? "bg-[#FFF5EB]"
@@ -141,17 +141,20 @@ export function MiniCalendar({
                 <span className="mb-0.5">{day}</span>
                 {dayEvents.length > 0 && isCurrentMonth && (
                   <div className="flex gap-0.5">
-                    {dayEvents.slice(0, 3).map((event, idx) => (
-                      <div
-                        key={idx}
-                        className="w-1 h-1 rounded-full"
-                        style={{
-                          backgroundColor: EVENT_COLORS.find(
-                            (elem) => elem.label == event.category1Id
-                          )?.color,
-                        }}
-                      />
-                    ))}
+                    {dayEvents.slice(0, 3).map((event, idx) => {
+                      const eventColor = event.color
+                        ? event.color
+                        : getColorByLabel(event.category1Id);
+                      return (
+                        <div
+                          key={idx}
+                          className="w-1 h-1 rounded-full"
+                          style={{
+                            backgroundColor: eventColor,
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                 )}
               </button>

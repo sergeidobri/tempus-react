@@ -59,13 +59,7 @@ export default function App() {
     setSelectedDate(newDate);
     setCurrentDate(newDate);
   };
-  // const handleCreateEvent = (eventData: Omit<CalendarEvent, "id">) => {
-  //   const newEvent: CalendarEvent = {
-  //     ...eventData,
-  //     id: Date.now().toString(),
-  //   };
-  //   setEvents([...events, newEvent]);
-  // };
+
   if (isPending) {
     return <div>Loading</div>;
   }
@@ -75,7 +69,7 @@ export default function App() {
   return (
     <>
       {/* Main Content */}
-      <div className="relative z-10 max-w-[1400px] mx-auto p-6">
+      <div className="relative w-full z-10 max-w-[1400px] mx-auto p-6">
         <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
           {/* Left Column - Mini Calendar & Schedule */}
           <div className="space-y-6">
