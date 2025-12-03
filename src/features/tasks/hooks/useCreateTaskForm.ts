@@ -6,6 +6,7 @@ import {
 } from "../schemas/createTaskSchema";
 import { tasksApi } from "@/api/tasks/api";
 import type { CreateTaskRequest } from "@/api/tasks/types";
+import { stringDateToISOString } from "@/utils/calendar";
 
 type UseCreateTaskFormProps = {
   onSuccess?: () => void;
@@ -16,21 +17,18 @@ type UseCreateTaskFormProps = {
 export const useCreateTaskForm = ({
   onSuccess,
   onModalClose,
-  initialDate,
 }: UseCreateTaskFormProps = {}) => {
-  const today = new Date();
-  const defaultDate = initialDate
-    ? initialDate.toISOString().split("T")[0]
-    : today.toISOString().split("T")[0];
-
   const form = useForm<CreateTaskFormData>({
     resolver: zodResolver(createTaskSchemaWithTimeCheck),
     defaultValues: {
       title: "",
-      date: defaultDate,
+      startDate: undefined,
       startTime: null,
+      endDate: undefined,
       endTime: null,
+      fullDay: false,
       categoryIds: [],
+      shares: [],
       address: "",
       description: "",
       color: null,
@@ -38,19 +36,33 @@ export const useCreateTaskForm = ({
   });
 
   const onSubmit = async (data: CreateTaskFormData) => {
-    const task: CreateTaskRequest = {
+    const rawTask: CreateTaskRequest = {
       title: data.title,
       startDate:
-        data.date && data.startTime ? `${data.date}T${data.startTime}` : null,
+        data.startDate && data.startTime
+          ? stringDateToISOString(`${data.startDate}T${data.startTime}`)
+          : null,
       endDate:
-        data.date && data.endTime ? `${data.date}T${data.endTime}` : null,
+        data.endDate && data.endTime && !data.fullDay
+          ? stringDateToISOString(`${data.endDate}T${data.startTime}`)
+          : null,
       address: data.address || null,
       description: data.description || null,
       color: data.color || null,
       categories: data.categoryIds || [],
+      shares: data.shares || [],
     };
 
+    const task = Object.fromEntries(
+      Object.entries(rawTask).filter(([, value]) => {
+        if (value === null || value === undefined) return false;
+        if (Array.isArray(value) && value.length === 0) return false;
+        return true;
+      })
+    ) as CreateTaskRequest;
+
     try {
+      console.log(task);
       await tasksApi.createTask(task);
       onSuccess?.();
       onModalClose?.();

@@ -3,7 +3,6 @@
 
 import type { TaskViewModel } from "@/types/tasks";
 import type { CreateTaskRequest } from "./types";
-import { TASKS_ENDPOINTS } from "./endpoints";
 
 const events: TaskViewModel[] = [
   {
@@ -12,8 +11,8 @@ const events: TaskViewModel[] = [
     isShared: true,
     title: "Team Meeting",
     address: "Conference Room A",
-    startDate: "2025-11-27T10:00:00",
-    endDate: "2025-11-27T11:30:00",
+    startDate: "2025-11-27T10:00:00.000Z",
+    endDate: "2025-11-27T11:30:00.000Z",
     color: "#3b82f6",
     category1Id: "Образование",
   },
@@ -22,8 +21,8 @@ const events: TaskViewModel[] = [
     authorId: "author-2",
     isShared: false,
     title: "Lunch with Client",
-    startDate: "2025-11-28T13:00:00",
-    endDate: "2025-11-28T14:00:00",
+    startDate: "2025-11-28T13:00:00.000Z",
+    endDate: "2025-11-28T14:00:00.000Z",
     color: "#ef4444",
   },
   {
@@ -31,8 +30,8 @@ const events: TaskViewModel[] = [
     authorId: "author-1",
     isShared: true,
     title: "Reminder: Submit Report",
-    startDate: "2025-11-29T09:00:00",
-    endDate: "2025-11-29T18:00:00",
+    startDate: "2025-11-29T09:00:00.000Z",
+    endDate: "2025-11-29T18:00:00.000Z",
     category1Id: "Работа",
   },
   {
@@ -40,8 +39,8 @@ const events: TaskViewModel[] = [
     authorId: "author-3",
     isShared: false,
     title: "Gym Session",
-    startDate: "2025-11-30T18:00:00",
-    endDate: "2025-11-30T19:00:00",
+    startDate: "2025-11-30T18:00:00.000Z",
+    endDate: "2025-11-30T19:00:00.000Z",
   },
   {
     id: "task-5",
@@ -49,8 +48,8 @@ const events: TaskViewModel[] = [
     isShared: true,
     title: "Flight to Berlin",
     address: "Moscow Sheremetyevo Airport",
-    startDate: "2025-12-01T06:20:00",
-    endDate: "2025-12-01T06:40:00",
+    startDate: "2025-12-01T06:00:00.000Z",
+    endDate: "2025-12-01T06:05:00.000Z",
     color: "#8b5cf6",
   },
   {
@@ -59,8 +58,8 @@ const events: TaskViewModel[] = [
     isShared: false,
     title: "Birthday Party",
     address: "My Place",
-    startDate: "2025-12-05T20:00:00",
-    endDate: "2025-12-06T01:00:00",
+    startDate: "2025-12-05T20:00:00.000Z",
+    endDate: "2025-12-06T01:00:00.000Z",
     color: "#f59e0b",
     category1Id: "Развлечения",
   },
@@ -69,16 +68,24 @@ const events: TaskViewModel[] = [
     authorId: "author-4",
     isShared: true,
     title: "Code Review",
-    startDate: "2025-12-02T15:00:00",
-    endDate: "2025-12-02T16:00:00",
+    startDate: "2025-12-02T15:00:00.000Z",
+    endDate: "2025-12-02T16:00:00.000Z",
   },
   {
     id: "task-8",
     authorId: "author-3",
     isShared: false,
     title: "Doctor Appointment",
-    startDate: "2025-12-03T11:00:00",
-    endDate: "2025-12-03T12:00:00",
+    startDate: "2025-12-03T11:00:00.000Z",
+    endDate: "2025-12-03T12:00:00.000Z",
+  },
+  {
+    id: "task-9",
+    authorId: "author-3",
+    isShared: false,
+    title: "Doctor Appointment",
+    startDate: "2025-12-03T15:00:00.000Z",
+    endDate: "2025-12-03T16:00:00.000Z",
   },
 ];
 

@@ -95,7 +95,7 @@ export function MonthCalendar({
         {weekDays.map((day, idx) => (
           <div
             key={day}
-            className={`flex flex-col text-center py-2 text-sm min-h-[115px] ${
+            className={`flex flex-col text-center py-2 text-sm min-h-[40px] ${
               idx >= 5 ? "text-[#CFA492]" : "text-[#4A403A]"
             } ${idx !== 6 ? "border-r" : ""}`}
           >
@@ -133,7 +133,7 @@ export function MonthCalendar({
                   }
                 }}
                 className={`
-                  min-h-[115px] p-2 transition-all
+                  min-h-[140px] p-2 transition-all
                   flex flex-col items-center
                   ${!isCurrentMonth ? "text-[#4A403A]/30" : ""}
                   ${isSelected && isCurrentMonth ? "bg-[#CFA492]/10" : ""}
@@ -166,7 +166,7 @@ export function MonthCalendar({
                 {/* Event indicators */}
                 {dayEvents.length > 0 && isCurrentMonth && (
                   <div className="space-y-1 w-full">
-                    {dayEvents.slice(0, 2).map((event, idx) => {
+                    {dayEvents.slice(0, 3).map((event, idx) => {
                       const eventColor = event.color
                         ? event.color
                         : getColorByLabel(event.category1Id);

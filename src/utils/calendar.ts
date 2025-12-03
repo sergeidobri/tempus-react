@@ -127,12 +127,8 @@ export function getEventsForDay(
   return events
     .filter((event) => isSameDay(new Date(event.startDate), date))
     .sort((a, b) => {
-      const timeA =
-        parseInt(a.startDate.split("T")[1].split(":")[0]) * 60 +
-        parseInt(a.startDate.split("T")[1].split(":")[1]);
-      const timeB =
-        parseInt(b.startDate.split("T")[1].split(":")[0]) * 60 +
-        parseInt(b.startDate.split("T")[1].split(":")[1]);
+      const timeA = new Date(a.startDate).getTime();
+      const timeB = new Date(b.startDate).getTime();
       return timeA - timeB;
     });
 }
@@ -185,4 +181,12 @@ export const formatTime = (date: Date) => {
 
 export const formatTimeFromString = (date: string) => {
   return formatTime(new Date(date));
+};
+
+export const stringDateToISOString = (dateString: string) => {
+  const [datePart, timePart] = dateString.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hours, minutes] = timePart.split(":").map(Number);
+
+  return new Date(year, month, day, hours, minutes).toISOString();
 };

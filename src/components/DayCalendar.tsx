@@ -36,17 +36,20 @@ export function DayCalendar({
   });
 
   const getEventPosition = (event: TaskViewModel) => {
-    const [startHour, startMin] = event.startDate
-      .split("T")[1]
-      .split(":")
-      .map(Number);
-    const [endHour, endMin] = event.endDate
-      .split("T")[1]
-      .split(":")
-      .map(Number);
+    // const [startHour, startMin] = event.startDate
+    //   .split("T")[1]
+    //   .split(":")
+    //   .map(Number);
+    // const [endHour, endMin] = event.endDate
+    //   .split("T")[1]
+    //   .split(":")
+    //   .map(Number);
 
-    const startMinutes = startHour * 60 + startMin;
-    const duration = endHour * 60 + endMin - (startHour * 60 + startMin);
+    const startDate = new Date(event.startDate);
+    const endDate = new Date(event.endDate);
+
+    const startMinutes = startDate.getHours() * 60 + startDate.getMinutes();
+    const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60);
 
     return {
       top: `${(startMinutes / 60) * 80}px`,

@@ -70,7 +70,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest); // Повторно отправляем наш начальный запрос, вызвавший смуту
       } catch (refreshError) {
         useAuthStore.getState().clearAuth();
-        navigate("/auth/login"); // При неудаче, отправляем на страницу авторизации.
+        // navigate("/auth/login"); // При неудаче, отправляем на страницу авторизации. Не надо 
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

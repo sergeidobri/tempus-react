@@ -31,10 +31,9 @@ export function WeekCalendar({
 }: WeekCalendarProps) {
   const today = new Date();
 
-  // Get the week containing currentDate
   const getWeekDates = (date: Date): Date[] => {
     const day = date.getDay();
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Monday start
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
     const monday = new Date(date);
     monday.setDate(diff);
 
@@ -57,19 +56,19 @@ export function WeekCalendar({
   });
 
   const getEventPosition = (event: TaskViewModel) => {
-    const [startHour, startMin] = event.startDate
-      .split("T")[1]
-      .split(":")
-      .map(Number);
-    const [endHour, endMin] = event.endDate
-      .split("T")[1]
-      .split(":")
-      .map(Number);
+    const start = new Date(event.startDate);
+    const end = new Date(event.endDate);
 
-    const duration = endHour * 60 + endMin - (startHour * 60 + startMin);
+    const durationMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
+
+    if (durationMinutes <= 0) {
+      return { height: "8px" };
+    }
+
+    const height = (durationMinutes / 60) * 90;
 
     return {
-      height: `${(duration / 60) * 60}px`,
+      height: `${height}px`,
     };
   };
 
@@ -187,16 +186,13 @@ export function WeekCalendar({
               return (
                 <div
                   key={`${dayIdx}-${time}`}
-                  className="bg-white border-t border-l min-h-[60px] relative hover:bg-[#cfa491]/10 transition-colors cursor-pointer"
+                  className="bg-white border-t border-l min-h-[90px] relative hover:bg-[#cfa491]/10 transition-colors cursor-pointer"
                   onClick={() => onDateSelect(date)}
                 >
                   {/* Render events that start in this hour */}
                   {dayEvents
                     .filter((event) => {
-                      const [startHour] = event.startDate
-                        .split("T")[1]
-                        .split(":")
-                        .map(Number);
+                      const startHour = new Date(event.startDate).getHours();
                       return startHour === hour;
                     })
                     .map((event, eventIdx) => {

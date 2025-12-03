@@ -42,3 +42,8 @@ export interface CategoryViewModel {
   name: string;
   color: string;
 }
+
+export interface TaskCategory {
+  categoryId: string;
+  priority: number;
+}

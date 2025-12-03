@@ -1,3 +1,5 @@
+import type { TaskCategory } from "@/types/tasks";
+
 // requests
 export interface CreateTaskRequest {
   title: string;
@@ -6,7 +8,7 @@ export interface CreateTaskRequest {
   startDate?: string | null;
   endDate?: string | null;
   color?: string | null;
-  categories?: string[];
+  categories?: TaskCategory[];
   shares?: string[];
 }
 
