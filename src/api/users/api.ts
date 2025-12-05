@@ -1,7 +1,7 @@
 import type { UserViewModel } from "@/types/users";
 import type { MatchEmailRequest } from "./types";
 
-const users: UserViewModel[] = [
+export const users: UserViewModel[] = [
   {
     id: "user-1",
     name: "Анна Петрова",

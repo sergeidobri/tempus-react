@@ -1,4 +1,9 @@
-import type { Category, TaskViewModel } from "@/types/tasks";
+import type {
+  Category,
+  CategoryModel,
+  TaskModel,
+  TaskViewModel,
+} from "@/types/tasks";
 
 // export interface CalendarEvent {
 //   id: string;
@@ -189,4 +194,37 @@ export const stringDateToISOString = (dateString: string) => {
   const [hours, minutes] = timePart.split(":").map(Number);
 
   return new Date(year, month, day, hours, minutes).toISOString();
+};
+
+export const getCategoryColor = (category: CategoryModel): string => {
+  if (category.color) return category.color;
+  const def = EVENT_COLORS.find((cat) => cat.label == category.name);
+  return def ? def.color : "#CCCCCC"; // fallback
+};
+
+export const getTaskColor = (
+  task: TaskModel,
+  allCategories: CategoryModel[],
+  fallBackColor = "#E0E0E0"
+): string => {
+  if (task.color) return task.color;
+
+  if (task.categories.length === 0) return fallBackColor;
+
+  const taskCategories = task.categories
+    .map((ct) => {
+      const catFetched = allCategories.find((c) => c.id === ct.categoryId);
+      return catFetched ? { ...catFetched, priority: ct.priority } : undefined;
+    })
+    .filter(Boolean) as (CategoryModel & { priority: number })[];
+
+  if (taskCategories.length === 0) return fallBackColor;
+
+  const sorted = [...taskCategories].sort((a, b) => {
+    const prioA = a.priority ?? Infinity;
+    const prioB = b.priority ?? Infinity;
+    return prioA - prioB; // меньший priority — выше приоритет
+  });
+
+  return getCategoryColor(sorted[0]);
 };

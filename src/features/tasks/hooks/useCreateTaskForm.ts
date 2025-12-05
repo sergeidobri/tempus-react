@@ -44,7 +44,7 @@ export const useCreateTaskForm = ({
           : null,
       endDate:
         data.endDate && data.endTime && !data.fullDay
-          ? stringDateToISOString(`${data.endDate}T${data.startTime}`)
+          ? stringDateToISOString(`${data.endDate}T${data.endTime}`)
           : null,
       address: data.address || null,
       description: data.description || null,
@@ -74,18 +74,8 @@ export const useCreateTaskForm = ({
     }
   };
 
-  const handleClose = (onClose: () => void) => {
-    const onCloseForm = () => {
-      form.reset();
-      onClose();
-      onModalClose?.();
-    };
-    return onCloseForm;
-  };
-
   return {
     ...form,
     onSubmit,
-    handleClose,
   };
 };

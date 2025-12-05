@@ -7,6 +7,7 @@ import {
   getColorByLabel,
 } from "../utils/calendar";
 import { Sun } from "lucide-react";
+import { PreviewFloatingTask } from "@/features/tasks/components/PreviewFloatingTask";
 
 interface DailyScheduleProps {
   selectedDate: Date;
@@ -48,44 +49,46 @@ export function DailySchedule({
             Нет событий на этот день
           </p>
         ) : (
-          dayEvents.map((event) => {
+          dayEvents.map((event, index) => {
             const eventColor = event.color
               ? event.color
               : getColorByLabel(event.category1Id);
             return (
-              <button
-                key={event.id}
-                onClick={() => onEventClick?.(event)}
-                className="w-full text-left p-3 rounded-lg hover:bg-[#FFF5EB] transition-colors border border-transparent hover:border-[#FFE3C7]"
-              >
-                <div className="flex items-start gap-3">
-                  {/* Time */}
-                  <div className="text-[#4A403A] min-w-[3rem]">
-                    {formatTime(event.startDate)}
-                  </div>
-
-                  {/* Event Details */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div
-                        className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{
-                          backgroundColor: eventColor,
-                        }}
-                      />
-                      <p className="text-[#4A403A]">{event.title}</p>
+              <PreviewFloatingTask key={index} taskId={event.id}>
+                <button
+                  onClick={() => onEventClick?.(event)}
+                  className="w-full text-left p-3 rounded-lg hover:bg-[#FFF5EB] transition-colors border border-transparent hover:border-[#FFE3C7]"
+                >
+                  <div className="flex items-start gap-3">
+                    {/* Time */}
+                    <div className="text-[#4A403A] min-w-[3rem]">
+                      {formatTime(event.startDate)}
                     </div>
-                    <p className="text-xs text-[#4A403A]/60">
-                      {formatTime(event.startDate)}-{formatTime(event.endDate)}
-                    </p>
-                    {event.address && (
-                      <p className="text-xs text-[#4A403A]/60 mt-1">
-                        📍 {event.address}
+
+                    {/* Event Details */}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div
+                          className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{
+                            backgroundColor: eventColor,
+                          }}
+                        />
+                        <p className="text-[#4A403A]">{event.title}</p>
+                      </div>
+                      <p className="text-xs text-[#4A403A]/60">
+                        {formatTime(event.startDate)}-
+                        {formatTime(event.endDate)}
                       </p>
-                    )}
+                      {event.address && (
+                        <p className="text-xs text-[#4A403A]/60 mt-1">
+                          📍 {event.address}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
+              </PreviewFloatingTask>
             );
           })
         )}

@@ -3,6 +3,7 @@
 
 import type { TaskViewModel } from "@/types/tasks";
 import type { CreateTaskRequest } from "./types";
+import { TASKS_ENDPOINTS } from "./endpoints";
 
 const events: TaskViewModel[] = [
   {
@@ -95,8 +96,66 @@ export const tasksApi = {
     return events;
   },
 
-  createTask: (data: CreateTaskRequest) => {
+  getById: async (id: string) => {
+    console.log(
+      `fetch ${TASKS_ENDPOINTS.GET_TASK_BY_ID}/${encodeURIComponent(id)}`
+    );
+    // return apiClient.get(
+    //   `${TASKS_ENDPOINTS.GET_TASK_BY_ID}/${encodeURIComponent(id)}`
+    // );
+    return Promise.resolve({
+      task: {
+        id: "task-789",
+        authorId: "user-123",
+        title: "Подготовить отчёт по Q3",
+        description:
+          "Собрать данные из всех регионов, сверить с бюджетом, подготовить презентацию для руководства.",
+        address: "г. Москва, ул. Тверская, д. 15, каб. 304",
+        startDate: new Date("2025-12-10T09:00:00"),
+        endDate: new Date("2025-12-15T18:00:00"),
+        color: null,
+        categories: [
+          { categoryId: "cat-1", priority: 1 },
+          { categoryId: "cat-1", priority: 2 },
+        ],
+        shares: [
+          { sharedWithUserId: "user-456" },
+          { sharedWithUserId: "user-789" },
+        ],
+      },
+      users: [
+        {
+          id: "user-456",
+          name: "Анна Петрова",
+          email: "anna@example.com",
+          avatarUrl: "https://i.pravatar.cc/150?u=anna",
+        },
+        {
+          id: "user-789",
+          name: "Иван Сидоров",
+          email: "ivan@example.com",
+          avatarUrl: null,
+        },
+      ],
+      // categories: [
+      //   {
+      //     id: "cat-1",
+      //     name: "Отчёты",
+      //     color: "#FF6B6B",
+      //     userId: "user-123",
+      //   },
+      //   {
+      //     id: "cat-2",
+      //     name: "Финансы",
+      //     color: "#4ECDC4",
+      //     userId: "user-123",
+      //   },
+      // ],
+    });
+  },
+
+  createTask: async (data: CreateTaskRequest) => {
     // return apiClient.post(TASKS_ENDPOINTS.CREATE_TASK, data);
-    return data;
+    return Promise.resolve(data);
   },
 };

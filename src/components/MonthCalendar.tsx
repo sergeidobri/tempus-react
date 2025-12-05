@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import SetViewButtons from "./SetViewButtons";
 import type { ViewMode } from "@/App";
 import type { TaskViewModel } from "@/types/tasks";
+import { PreviewFloatingTask } from "@/features/tasks/components/PreviewFloatingTask";
 
 interface MonthCalendarProps {
   currentDate: Date;
@@ -125,7 +126,7 @@ export function MonthCalendar({
             const isWeekendDay = dayIndex >= 5;
 
             return (
-              <button
+              <div
                 key={`${weekIndex}-${dayIndex}`}
                 onClick={() => {
                   if (isCurrentMonth) {
@@ -171,16 +172,17 @@ export function MonthCalendar({
                         ? event.color
                         : getColorByLabel(event.category1Id);
                       return (
-                        <div
-                          key={idx}
-                          className="text-xs px-1.5 py-0.5 rounded truncate"
-                          style={{
-                            backgroundColor: `${hexToRgba(eventColor, 0.1)}`,
-                            color: eventColor,
-                          }}
-                        >
-                          {event.title}
-                        </div>
+                        <PreviewFloatingTask key={idx} taskId={event.id}>
+                          <div
+                            className="text-xs text-center px-1.5 py-0.5 rounded truncate cursor-pointer"
+                            style={{
+                              backgroundColor: `${hexToRgba(eventColor, 0.1)}`,
+                              color: eventColor,
+                            }}
+                          >
+                            {event.title}
+                          </div>
+                        </PreviewFloatingTask>
                       );
                     })}
                     {dayEvents.length > 2 && (
@@ -190,7 +192,7 @@ export function MonthCalendar({
                     )}
                   </div>
                 )}
-              </button>
+              </div>
             );
           })
         )}

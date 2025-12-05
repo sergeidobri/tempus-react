@@ -1,4 +1,5 @@
-import type { TaskCategory } from "@/types/tasks";
+import type { TaskCategory, TaskModel } from "@/types/tasks";
+import type { UserViewModel } from "@/types/users";
 
 // requests
 export interface CreateTaskRequest {
@@ -12,6 +13,10 @@ export interface CreateTaskRequest {
   shares?: string[];
 }
 
+export interface GetTaskByIdRequest {
+  taskId: string;
+}
+
 // responses
 export interface CreateTaskResponse {
   id: string;
@@ -23,4 +28,11 @@ export interface CreateTaskResponse {
   color?: string;
   categories: string[];
   shares: string[];
+}
+
+export interface GetTaskResponse {
+  task: TaskModel;
+  users: UserViewModel[];
+  // categories: (ICategoryViewModel &
+  //   Pick<IColorViewModel, "color" | "userId">)[];
 }
