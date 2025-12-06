@@ -2,13 +2,16 @@ import {
   getEventsForDay,
   isSameDay,
   hexToRgba,
-  getColorByLabel,
   formatTimeFromString as formatTime,
+  getCategoryColorById,
+  getFallBackColor,
 } from "../utils/calendar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import SetViewButtons from "./SetViewButtons";
 import { type ViewMode } from "@/App";
 import type { TaskViewModel } from "@/types/tasks";
+import { useQuery } from "@tanstack/react-query";
+import { categoriesApi } from "@/api/categories/api";
 
 interface WeekCalendarProps {
   currentDate: Date;
@@ -29,6 +32,12 @@ export function WeekCalendar({
   setViewMode,
   getViewMode,
 }: WeekCalendarProps) {
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["categories"],
+    queryFn: categoriesApi.getAll,
+    staleTime: 2 * 60 * 1000, // 2 минуты
+  });
+
   const today = new Date();
 
   const getWeekDates = (date: Date): Date[] => {
@@ -57,7 +66,9 @@ export function WeekCalendar({
 
   const getEventPosition = (event: TaskViewModel) => {
     const start = new Date(event.startDate);
-    const end = new Date(event.endDate);
+    const end = event.endDate
+      ? new Date(event.endDate)
+      : new Date(start.getFullYear(), start.getMonth(), start.getDate() + 1); // 00:00 следующего дня, т.е. на весь текущий день
 
     const durationMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
 
@@ -198,11 +209,16 @@ export function WeekCalendar({
                     .map((event, eventIdx) => {
                       const eventColor = event.color
                         ? event.color
-                        : getColorByLabel(event.category1Id);
+                        : !isPending && !isError
+                          ? getCategoryColorById(
+                              event.category1Id,
+                              data.categories
+                            )
+                          : getFallBackColor();
                       const position = getEventPosition(event);
                       return (
                         <div
-                          key={event.id}
+                          key={event.taskId}
                           className="absolute left-0 right-0 mx-1 px-2 py-1 rounded text-xs overflow-hidden"
                           style={{
                             ...position,
@@ -220,8 +236,10 @@ export function WeekCalendar({
                             {event.title}
                           </div>
                           <div className="text-[10px] opacity-70">
-                            {formatTime(event.startDate)}-
-                            {formatTime(event.endDate)}
+                            {formatTime(event.startDate)}
+                            {event.endDate
+                              ? `-${formatTime(event.endDate)}`
+                              : " - весь день"}
                           </div>
                         </div>
                       );

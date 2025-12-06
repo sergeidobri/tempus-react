@@ -9,3 +9,9 @@ export interface CategoryCreateRequest {
 export interface CategoryGetResponse {
   categories: CategoryModel[];
 }
+
+export interface CategoryCreateResponse {
+  id: string;
+  name: string;
+  color: string;
+}

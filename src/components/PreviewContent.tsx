@@ -5,6 +5,7 @@ import { getCategoryColor, getTaskColor } from "@/utils/calendar";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { Loader } from "lucide-react";
 
 interface PreviewContentProps {
   info: GetTaskResponse;
@@ -16,13 +17,14 @@ const PreviewContent = ({ info }: PreviewContentProps) => {
   const { data, isPending, isError } = useQuery({
     queryKey: ["categories"],
     queryFn: categoriesApi.getAll,
+    staleTime: 2 * 60 * 1000, // 2 минуты
   });
 
   if (isPending) {
-    return null;
+    return <Loader size={14} color="#CFA492" />;
   }
   if (isError) {
-    return null;
+    return <div>Нет данных</div>;
   }
 
   const taskUsers = task.shares
@@ -36,15 +38,19 @@ const PreviewContent = ({ info }: PreviewContentProps) => {
   const mainCategoryId = taskCategories[0]?.id;
 
   return (
-    <div className="text-sm text-[#4A403A] max-w-xs">
+    <div className="text-sm text-[#4A403A] max-w-xs break-words hyphens-auto">
       {/* Цветовая метка задачи */}
-      <div
-        className="w-full h-1 rounded-t-md mb-2"
-        style={{ backgroundColor: getTaskColor(task, data.categories) }}
-      />
+      <div className="flex gap-2 items-center">
+        <div
+          className="w-3 h-3 rounded-full mb-2"
+          style={{ backgroundColor: getTaskColor(task, data.categories) }}
+        />
 
-      {/* Заголовок */}
-      <h3 className="font-semibold text-base mb-2">{task.title}</h3>
+        {/* Заголовок */}
+        <h3 className="font-semibold mb-2 break-all hyphens-auto">
+          {task.title}
+        </h3>
+      </div>
 
       {/* Описание */}
       {task.description && (

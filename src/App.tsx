@@ -13,11 +13,7 @@ export default function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const {
-    data: events,
-    isPending,
-    isError,
-  } = useQuery({
+  const { data, isPending, isError } = useQuery({
     queryKey: ["tasks"],
     queryFn: tasksApi.get,
   });
@@ -66,6 +62,9 @@ export default function App() {
   if (isError) {
     return <div>Error</div>;
   }
+
+  const events = data.tasks;
+
   return (
     <>
       {/* Main Content */}

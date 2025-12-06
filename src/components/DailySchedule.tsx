@@ -4,10 +4,13 @@ import {
   formatDate,
   isToday,
   formatTimeFromString as formatTime,
-  getColorByLabel,
+  getCategoryColorById,
+  getFallBackColor,
 } from "../utils/calendar";
 import { Sun } from "lucide-react";
 import { PreviewFloatingTask } from "@/features/tasks/components/PreviewFloatingTask";
+import { useQuery } from "@tanstack/react-query";
+import { categoriesApi } from "@/api/categories/api";
 
 interface DailyScheduleProps {
   selectedDate: Date;
@@ -20,6 +23,12 @@ export function DailySchedule({
   events,
   onEventClick,
 }: DailyScheduleProps) {
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["categories"],
+    queryFn: categoriesApi.getAll,
+    staleTime: 2 * 60 * 1000, // 2 минуты
+  });
+
   const dayEvents = getEventsForDay(events, selectedDate);
   const isTodayDate = isToday(selectedDate);
 
@@ -52,9 +61,11 @@ export function DailySchedule({
           dayEvents.map((event, index) => {
             const eventColor = event.color
               ? event.color
-              : getColorByLabel(event.category1Id);
+              : !isPending && !isError
+                ? getCategoryColorById(event.category1Id, data.categories)
+                : getFallBackColor();
             return (
-              <PreviewFloatingTask key={index} taskId={event.id}>
+              <PreviewFloatingTask key={index} taskId={event.taskId}>
                 <button
                   onClick={() => onEventClick?.(event)}
                   className="w-full text-left p-3 rounded-lg hover:bg-[#FFF5EB] transition-colors border border-transparent hover:border-[#FFE3C7]"
@@ -66,7 +77,7 @@ export function DailySchedule({
                     </div>
 
                     {/* Event Details */}
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <div
                           className="w-2 h-2 rounded-full flex-shrink-0"
@@ -74,14 +85,16 @@ export function DailySchedule({
                             backgroundColor: eventColor,
                           }}
                         />
-                        <p className="text-[#4A403A]">{event.title}</p>
+                        <p className="text-[#4A403A] truncate">{event.title}</p>
                       </div>
                       <p className="text-xs text-[#4A403A]/60">
-                        {formatTime(event.startDate)}-
-                        {formatTime(event.endDate)}
+                        {formatTime(event.startDate)}
+                        {event.endDate
+                          ? `-${formatTime(event.endDate)}`
+                          : ` - весь день`}
                       </p>
                       {event.address && (
-                        <p className="text-xs text-[#4A403A]/60 mt-1">
+                        <p className="text-xs text-[#4A403A]/60 mt-1 break-words">
                           📍 {event.address}
                         </p>
                       )}

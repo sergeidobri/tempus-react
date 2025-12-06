@@ -34,9 +34,9 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     }; // сохраняем изначальный запрос(упавший с ошибкой)
-    const isRefreshRequest = error.config?.url?.includes("/auth/refresh");
+    const isRefreshRequest = error.config?.url?.includes("/account/refresh");
     const isInvalidLoginAndPasswordRequest =
-      error.config?.url?.includes("/auth/login");
+      error.config?.url?.includes("/account/login");
 
     if (
       error.response?.status === 401 &&
@@ -70,7 +70,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest); // Повторно отправляем наш начальный запрос, вызвавший смуту
       } catch (refreshError) {
         useAuthStore.getState().clearAuth();
-        // navigate("/auth/login"); // При неудаче, отправляем на страницу авторизации. Не надо 
+        // navigate("/auth/login"); // При неудаче, отправляем на страницу авторизации. Не надо
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

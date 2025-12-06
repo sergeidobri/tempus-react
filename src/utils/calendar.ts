@@ -1,20 +1,4 @@
-import type {
-  Category,
-  CategoryModel,
-  TaskModel,
-  TaskViewModel,
-} from "@/types/tasks";
-
-// export interface CalendarEvent {
-//   id: string;
-//   title: string;
-//   date: Date;
-//   startTime: string;
-//   endTime: string;
-//   category: Category;
-//   location?: string;
-//   description?: string;
-// }
+import type { CategoryModel, TaskModel, TaskViewModel } from "@/types/tasks";
 
 export const EVENT_COLORS = [
   { label: "Образование", color: "#E200B1" },
@@ -172,13 +156,13 @@ export const hexToRgba = (hex: string | undefined, alpha = 0.2) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-export const getColorByLabel = (label: Category | undefined) => {
-  const fallback = EVENT_COLORS.find((obj) => obj.label == "default");
-  const fallbackColor = fallback ? fallback.color : "#000000";
-  const result = EVENT_COLORS.find((obj) => obj.label == label);
+// export const getColorByLabel = (label: Category | undefined) => {
+//   const fallback = EVENT_COLORS.find((obj) => obj.label == "default");
+//   const fallbackColor = fallback ? fallback.color : "#000000";
+//   const result = EVENT_COLORS.find((obj) => obj.label == label);
 
-  return result ? result.color : fallbackColor;
-};
+//   return result ? result.color : fallbackColor;
+// };
 
 export const formatTime = (date: Date) => {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
@@ -188,28 +172,42 @@ export const formatTimeFromString = (date: string) => {
   return formatTime(new Date(date));
 };
 
-export const stringDateToISOString = (dateString: string) => {
-  const [datePart, timePart] = dateString.split("T");
-  const [year, month, day] = datePart.split("-").map(Number);
-  const [hours, minutes] = timePart.split(":").map(Number);
+export const stringDateToISOString = (dateStr: string): string => {
+  const date = new Date(dateStr.replace(" ", "T")); // если вдруг есть пробел
 
-  return new Date(year, month, day, hours, minutes).toISOString();
+  if (isNaN(date.getTime())) {
+    throw new Error(`Invalid date string: ${dateStr}`);
+  }
+
+  return date.toISOString();
 };
 
 export const getCategoryColor = (category: CategoryModel): string => {
   if (category.color) return category.color;
   const def = EVENT_COLORS.find((cat) => cat.label == category.name);
-  return def ? def.color : "#CCCCCC"; // fallback
+  return def ? def.color : getFallBackColor(); // fallback
+};
+
+export const getFallBackColor = (): string => "#4e4e4eff";
+
+export const getCategoryColorById = (
+  categoryId: string | null,
+  allCategories: CategoryModel[]
+): string => {
+  const categoryObj = allCategories.find((cat) => cat.id == categoryId);
+  if (!categoryObj) {
+    return getFallBackColor();
+  }
+  return getCategoryColor(categoryObj);
 };
 
 export const getTaskColor = (
   task: TaskModel,
-  allCategories: CategoryModel[],
-  fallBackColor = "#E0E0E0"
+  allCategories: CategoryModel[]
 ): string => {
   if (task.color) return task.color;
 
-  if (task.categories.length === 0) return fallBackColor;
+  if (task.categories.length === 0) return getFallBackColor();
 
   const taskCategories = task.categories
     .map((ct) => {
@@ -218,7 +216,7 @@ export const getTaskColor = (
     })
     .filter(Boolean) as (CategoryModel & { priority: number })[];
 
-  if (taskCategories.length === 0) return fallBackColor;
+  if (taskCategories.length === 0) return getFallBackColor();
 
   const sorted = [...taskCategories].sort((a, b) => {
     const prioA = a.priority ?? Infinity;

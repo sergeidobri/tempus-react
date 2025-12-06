@@ -12,7 +12,6 @@ import {
   useRole,
 } from "@floating-ui/react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader } from "lucide-react";
 import { useState } from "react";
 
 export const PreviewFloatingTask = ({
@@ -32,6 +31,7 @@ export const PreviewFloatingTask = ({
   } = useQuery({
     queryKey: ["task", taskId],
     queryFn: () => tasksApi.getById(taskId),
+    staleTime: 5 * 1000 * 60, // 5 минут staleTime
     enabled: open, // грузим только когда поповер открыт
   });
 
@@ -69,11 +69,7 @@ export const PreviewFloatingTask = ({
           {...getFloatingProps()}
           className="z-50 max-w-xs w-80 bg-white shadow-lg rounded-md p-4 border"
         >
-          {isLoading && (
-            <div className="text-center py-4">
-              Загрузка... <Loader size={14} color="#CFA492" />
-            </div>
-          )}
+          {isLoading && <div className="text-center py-4">Загрузка...</div>}
           {isError && (
             <div className="text-center py-4 text-red-500">
               Ошибка:

@@ -13,11 +13,11 @@ import { Input } from "@/components/ui/Input";
 import { ChevronRight, Star, X } from "lucide-react";
 import { togglePopover } from "@/utils/popovers";
 import { usersApi } from "@/api/users/api";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { categoriesApi } from "@/api/categories/api";
 import { PopoverPortal } from "@/components/PopoverPortal";
-
-type CategoryItem = { id: string; name: string; color: string };
+import { getCategoryColor } from "@/utils/calendar";
+import type { CategoryGetResponse } from "@/api/categories/types";
 
 interface CreateTaskFormProps {
   onClose: () => void;
@@ -35,21 +35,6 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
       []
     );
     const [selectedUsers, setSelectedUsers] = useState<UserViewModel[]>([]);
-
-    // api simulation (TEMPORARY. After backend launched, use useQuery hooks):
-    const [availableCategories, setAvailableCategories] = useState<
-      CategoryItem[]
-    >([
-      { id: "1", name: "Работа", color: "#CFA492" },
-      { id: "2", name: "Образование", color: "#A4CFA4" },
-      { id: "3", name: "Быт", color: "#8A9B6C" },
-      { id: "4", name: "Работа", color: "#b85c35ff" },
-      { id: "5", name: "Образование", color: "#2cf52cff" },
-      { id: "6", name: "Быт", color: "#a2ff00ff" },
-      { id: "7", name: "Работа", color: "#04a5d6ff" },
-      { id: "8", name: "Образование", color: "#5bb65bff" },
-      { id: "9", name: "Быт", color: "#eeff00ff" },
-    ]);
     const [availableUsers, setAvailableUsers] = useState<UserViewModel[]>([]);
 
     // flags:
@@ -107,7 +92,9 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
     useImperativeHandle(ref, () => ({ reset: handleReset }), [handleReset]);
 
     const onSubmitWrapper = (data: CreateTaskFormData) => {
-      data.shares = selectedUsers.map((user) => user.id);
+      data.shares = selectedUsers.map((user) => ({
+        sharedWithUserId: user.id,
+      }));
       if (!showAdditionalFields) {
         delete data.startDate;
         delete data.startTime;
@@ -139,7 +126,7 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
       ) {
         usersApi
           .matchEmails({ emailPrefix: searchQuery })
-          .then(setAvailableUsers)
+          .then((response) => setAvailableUsers(response.users))
           .catch(() => setAvailableUsers([]));
       } else if (searchQuery.indexOf("@") == -1) {
         setAvailableUsers([]);
@@ -163,10 +150,47 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
       };
     }, [isSharePopoverOpen, isCategoryPopoverOpen]);
 
-    const { mutateAsync: createCategory, isPending } = useMutation({
-      mutationFn: (category: { name: string; color: string }) =>
-        categoriesApi.create(category),
+    const queryClient = useQueryClient();
+
+    const {
+      data: availableCategories,
+      isLoading: isCategoriesLoading,
+      isError: isCategoriesError,
+    } = useQuery({
+      queryKey: ["categories"],
+      queryFn: categoriesApi.getAll,
+      staleTime: 2 * 60 * 1000,
     });
+
+    const { mutateAsync: createCategory, isPending: isCreatePending } =
+      useMutation({
+        mutationFn: (category: { name: string; color: string }) =>
+          categoriesApi.create(category),
+        onSuccess: (newCategory) => {
+          if (newCategory) {
+            queryClient.setQueryData<CategoryGetResponse>(
+              ["categories"],
+              (oldData) => {
+                if (!oldData) {
+                  return { categories: [newCategory] };
+                }
+
+                return {
+                  ...oldData,
+                  categories: [...oldData.categories, newCategory],
+                };
+              }
+            );
+          }
+          setNewCategoryName("");
+          setNewCategoryColor("#3b82f6");
+          setIsCreating(false);
+          setIsCategoryPopoverOpen(false);
+        },
+        onError: (error) => {
+          console.error("Не удалось создать категорию", error);
+        },
+      });
 
     return (
       <form
@@ -183,7 +207,7 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
               {...register("title")}
               type="text"
               className="w-full px-3 py-2 border border-[#CFA492] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#CFA492] bg-white"
-              error={errors.title?.message}
+              error={errors.title?.message || errors.description?.message}
               errorClassName="right-0 left-auto"
               placeholder="Введите название"
             />
@@ -333,6 +357,8 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
               {...register("address")}
               type="text"
               className="w-full px-3 py-2 border border-[#CFA492] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#CFA492] bg-white"
+              error={errors.address?.message}
+              errorClassName="right-0 left-auto"
               placeholder="Адрес или место..."
             />
           </div>
@@ -459,54 +485,63 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
                 ref={divCategoryRef}
                 className="flex flex-wrap gap-2 items-center"
               >
-                {selectedCategoryIds.map((id, index) => {
-                  const cat = availableCategories.find((c) => c.id === id);
-                  const isFirst = index === 0;
-                  return cat ? (
-                    <div
-                      key={id}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${
-                        isFirst
-                          ? "border-[#4A403A] bg-[#FFF8F0]"
-                          : "border-[#CFA492] bg-white"
-                      } text-[#4A403A] text-sm`}
-                      title={cat.name}
-                    >
-                      <span
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: cat.color }}
-                      />
-                      {cat.name}
+                {!isCategoriesLoading &&
+                !isCategoriesError &&
+                availableCategories
+                  ? selectedCategoryIds.map((id, index) => {
+                      const cat = availableCategories.categories.find(
+                        (c) => c.id === id
+                      );
+                      if (!cat) return null;
+                      const catColor = getCategoryColor(cat);
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedCategoryIds((prev) => [
-                            id,
-                            ...prev.filter((catId) => catId !== id),
-                          ]);
-                        }}
-                        className="ml-1 text-[#CFA492] hover:text-[#A87C68] focus:outline-none"
-                        aria-label="Сделать главной категорией"
-                      >
-                        <Star
-                          className={`w-3 h-3 ${isFirst ? "fill-current" : ""} hover:fill-current`}
-                        />
-                      </button>
+                      const isFirst = index === 0;
+                      return (
+                        <div
+                          key={id}
+                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${
+                            isFirst
+                              ? "border-[#4A403A] bg-[#FFF8F0]"
+                              : "border-[#CFA492] bg-white"
+                          } text-[#4A403A] text-sm`}
+                          title={cat.name}
+                        >
+                          <span
+                            className="w-2.5 h-2.5 rounded-full"
+                            style={{ backgroundColor: catColor }}
+                          />
+                          {cat.name}
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedCategoryIds((prev) =>
-                            prev.filter((catId) => catId != cat.id)
-                          );
-                        }}
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ) : null;
-                })}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCategoryIds((prev) => [
+                                id,
+                                ...prev.filter((catId) => catId !== id),
+                              ]);
+                            }}
+                            className="ml-1 text-[#CFA492] hover:text-[#A87C68] focus:outline-none"
+                            aria-label="Сделать главной категорией"
+                          >
+                            <Star
+                              className={`w-3 h-3 ${isFirst ? "fill-current" : ""} hover:fill-current`}
+                            />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCategoryIds((prev) =>
+                                prev.filter((catId) => catId != cat.id)
+                              );
+                            }}
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      );
+                    })
+                  : "Загрузка категорий..."}
 
                 {/* Кнопка "+" */}
                 <button
@@ -530,7 +565,7 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
               {/* Поповер выбора категорий */}
               <PopoverPortal isOpen={isCategoryPopoverOpen}>
                 <div
-                  className="fixed z-50 mt-[-0.5rem] w-60 bg-white border border-[#CFA492] rounded-lg shadow-lg p-2 max-h-40 overflow-y-auto transform -translate-y-full"
+                  className="fixed z-50 mt-[-0.5rem] w-60 bg-white border border-[#CFA492] rounded-lg shadow-lg p-2 max-h-60 overflow-y-auto transform -translate-y-full"
                   style={{
                     top: categoryPopoverPosition.top,
                     left: categoryPopoverPosition.left,
@@ -540,43 +575,50 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
                   }}
                 >
                   <div className="space-y-1">
-                    {availableCategories.map((cat) => {
-                      const isSelected = selectedCategoryIds.includes(cat.id);
-                      return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => {
-                            if (!isSelected) {
-                              setSelectedCategoryIds((prev) => [
-                                ...prev,
-                                cat.id,
-                              ]);
-                            } else {
-                              setSelectedCategoryIds((prev) =>
-                                prev.filter((catId) => catId != cat.id)
-                              );
-                            }
-                            setIsCategoryPopoverOpen(false);
-                          }}
-                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm ${
-                            isSelected ? "bg-[#E6F0FF]" : "hover:bg-gray-50"
-                          }`}
-                        >
-                          {isSelected ? (
-                            <span className="w-4 h-4 flex items-center justify-center text-[#4A403A]">
-                              ✕
-                            </span>
-                          ) : (
-                            <span
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: cat.color }}
-                            />
-                          )}
-                          {cat.name}
-                        </button>
-                      );
-                    })}
+                    {!isCategoriesError &&
+                    !isCategoriesLoading &&
+                    availableCategories
+                      ? availableCategories.categories.map((cat) => {
+                          const isSelected = selectedCategoryIds.includes(
+                            cat.id
+                          );
+                          const catColor = getCategoryColor(cat);
+                          return (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => {
+                                if (!isSelected) {
+                                  setSelectedCategoryIds((prev) => [
+                                    ...prev,
+                                    cat.id,
+                                  ]);
+                                } else {
+                                  setSelectedCategoryIds((prev) =>
+                                    prev.filter((catId) => catId != cat.id)
+                                  );
+                                }
+                                setIsCategoryPopoverOpen(false);
+                              }}
+                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm ${
+                                isSelected ? "bg-[#E6F0FF]" : "hover:bg-gray-50"
+                              }`}
+                            >
+                              {isSelected ? (
+                                <span className="w-4 h-4 flex items-center justify-center text-[#4A403A]">
+                                  ✕
+                                </span>
+                              ) : (
+                                <span
+                                  className="w-3 h-3 rounded-full"
+                                  style={{ backgroundColor: catColor }}
+                                />
+                              )}
+                              {cat.name}
+                            </button>
+                          );
+                        })
+                      : "Загрузка категорий..."}
                   </div>
 
                   {isCreating ? (
@@ -616,20 +658,19 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
                                 name: newCategoryName.trim(),
                                 color: newCategoryColor,
                               });
-                              setAvailableCategories((prev) => [
-                                ...prev,
-                                newCat,
-                              ]);
+                              if (newCat) {
+                                setSelectedCategoryIds((prev) => [
+                                  ...prev,
+                                  newCat.id,
+                                ]);
+                              }
 
-                              setSelectedCategoryIds((prev) => [
-                                ...prev,
-                                newCat.id,
-                              ]);
+                              // надо ли?:
 
-                              setNewCategoryColor("#3b82f6");
-                              setNewCategoryName("");
-                              setIsCreating(false);
-                              setIsCategoryPopoverOpen(false);
+                              // setNewCategoryColor("#3b82f6");
+                              // setNewCategoryName("");
+                              // setIsCreating(false);
+                              // setIsCategoryPopoverOpen(false);
                             } catch (error) {
                               console.error(
                                 "Не удалось создать категорию",
@@ -637,10 +678,10 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
                               );
                             }
                           }}
-                          disabled={isPending || !newCategoryName.trim()}
+                          disabled={isCreatePending || !newCategoryName.trim()}
                           className="px-3 py-1 text-sm bg-[#CFA492] text-white rounded hover:bg-[#b88f7a] disabled:opacity-50"
                         >
-                          {isPending ? "Создание..." : "Создать"}
+                          {isCreatePending ? "Создание..." : "Создать"}
                         </button>
                         <button
                           type="button"

@@ -1,4 +1,4 @@
-import type { TaskCategory, TaskModel } from "@/types/tasks";
+import type { TaskCategory, TaskModel, TaskShare, TaskViewModel } from "@/types/tasks";
 import type { UserViewModel } from "@/types/users";
 
 // requests
@@ -10,7 +10,7 @@ export interface CreateTaskRequest {
   endDate?: string | null;
   color?: string | null;
   categories?: TaskCategory[];
-  shares?: string[];
+  shares?: TaskShare[];
 }
 
 export interface GetTaskByIdRequest {
@@ -18,16 +18,21 @@ export interface GetTaskByIdRequest {
 }
 
 // responses
-export interface CreateTaskResponse {
-  id: string;
-  authorId: string;
-  title: string;
-  description?: string;
-  startDate: string;
-  endDate?: string;
-  color?: string;
-  categories: string[];
-  shares: string[];
+// export interface CreateTaskResponse {
+//   id: string;
+//   authorId: string;
+//   title: string;
+//   description?: string;
+//   startDate: string;
+//   endDate?: string;
+//   color?: string;
+//   categories: string[];
+//   shares: string[];
+// }
+
+export interface GetTasksReponse {
+  tasks: TaskViewModel[];
+  authors: UserViewModel[];
 }
 
 export interface GetTaskResponse {

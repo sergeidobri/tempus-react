@@ -3,9 +3,12 @@ import {
   getMonthData,
   isSameDay,
   getEventsForDay,
-  getColorByLabel,
+  getCategoryColorById,
+  getFallBackColor,
 } from "../utils/calendar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { categoriesApi } from "@/api/categories/api";
 
 interface MiniCalendarProps {
   currentDate: Date;
@@ -22,6 +25,12 @@ export function MiniCalendar({
   onDateSelect,
   onMonthChange,
 }: MiniCalendarProps) {
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["categories"],
+    queryFn: categoriesApi.getAll,
+    staleTime: 2 * 60 * 1000, // 2 минуты
+  });
+
   const monthData = getMonthData(
     currentDate.getFullYear(),
     currentDate.getMonth()
@@ -144,7 +153,12 @@ export function MiniCalendar({
                     {dayEvents.slice(0, 3).map((event, idx) => {
                       const eventColor = event.color
                         ? event.color
-                        : getColorByLabel(event.category1Id);
+                        : !isPending && !isError
+                          ? getCategoryColorById(
+                              event.category1Id,
+                              data.categories
+                            )
+                          : getFallBackColor();
                       return (
                         <div
                           key={idx}

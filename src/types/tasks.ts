@@ -1,16 +1,17 @@
 export interface TaskViewModel {
-  id: string;
+  userId: string;
+  taskId: string;
+
   authorId: string;
   isShared: boolean;
 
   title: string;
-  description?: string;
-  address?: string;
+  address: string | null;
   startDate: string;
-  endDate: string;
-  color?: string;
+  endDate: string | null;
+  color: string | null;
 
-  category1Id?: Category;
+  category1Id: string | null;
 }
 
 export interface TaskModel {
@@ -36,7 +37,7 @@ export interface CategoryModel {
   id: string;
   name: string;
   color: string | null;
-  authorId: string | null;
+  authorId?: string | null;
 }
 
 export const CATEGORIES = [

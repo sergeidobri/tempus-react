@@ -1,5 +1,5 @@
 export const TASKS_ENDPOINTS = {
-  GET_TASK_BY_ID: `/api/tasks`,
-  GET_TASKS: "/api/tasks",
-  CREATE_TASK: "/api/tasks",
+  GET_TASK_BY_ID: `/api/calendar`,
+  GET_TASKS: "/api/calendar",
+  CREATE_TASK: "/api/calendar",
 } as const;

@@ -1,8 +1,8 @@
 export const AUTH_ENDPOINTS = {
-  REGISTER: "/api/auth/register",
-  LOGIN: "/api/auth/login",
-  REFRESH: "/api/auth/refresh",
-  LOGOUT: "/api/auth/exit",
-  CHANGE_PASSWORD: "/api/auth/change-password",
-  CONFIRM_EMAIL: "/api/auth/confirm-email",
+  REGISTER: "/api/account/register",
+  LOGIN: "/api/account/login",
+  REFRESH: "/api/account/login",
+  LOGOUT: "/api/account/exit",
+  CHANGE_PASSWORD: "/api/accountauth/change-password",
+  CONFIRM_EMAIL: "/api/account/confirm-email",
 } as const;

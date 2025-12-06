@@ -3,13 +3,16 @@ import {
   isSameDay,
   getEventsForDay,
   hexToRgba,
-  getColorByLabel,
+  getCategoryColorById,
+  getFallBackColor,
 } from "../utils/calendar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import SetViewButtons from "./SetViewButtons";
 import type { ViewMode } from "@/App";
 import type { TaskViewModel } from "@/types/tasks";
 import { PreviewFloatingTask } from "@/features/tasks/components/PreviewFloatingTask";
+import { useQuery } from "@tanstack/react-query";
+import { categoriesApi } from "@/api/categories/api";
 
 interface MonthCalendarProps {
   currentDate: Date;
@@ -30,6 +33,12 @@ export function MonthCalendar({
   setViewMode,
   getViewMode,
 }: MonthCalendarProps) {
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["categories"],
+    queryFn: categoriesApi.getAll,
+    staleTime: 2 * 60 * 1000, // 2 минуты
+  });
+
   const monthData = getMonthData(
     currentDate.getFullYear(),
     currentDate.getMonth()
@@ -170,9 +179,14 @@ export function MonthCalendar({
                     {dayEvents.slice(0, 3).map((event, idx) => {
                       const eventColor = event.color
                         ? event.color
-                        : getColorByLabel(event.category1Id);
+                        : !isPending && !isError
+                          ? getCategoryColorById(
+                              event.category1Id,
+                              data.categories
+                            )
+                          : getFallBackColor();
                       return (
-                        <PreviewFloatingTask key={idx} taskId={event.id}>
+                        <PreviewFloatingTask key={idx} taskId={event.taskId}>
                           <div
                             className="text-xs text-center px-1.5 py-0.5 rounded truncate cursor-pointer"
                             style={{
@@ -185,9 +199,9 @@ export function MonthCalendar({
                         </PreviewFloatingTask>
                       );
                     })}
-                    {dayEvents.length > 2 && (
+                    {dayEvents.length > 3 && (
                       <div className="text-xs text-[#4A403A]/60 px-1.5">
-                        еще +{dayEvents.length - 2}
+                        еще +{dayEvents.length - 3}
                       </div>
                     )}
                   </div>

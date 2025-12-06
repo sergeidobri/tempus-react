@@ -3,13 +3,16 @@ import {
   EVENT_COLORS,
   isToday,
   hexToRgba,
-  getColorByLabel,
   formatTimeFromString as formatTime,
+  getCategoryColorById,
+  getFallBackColor,
 } from "../utils/calendar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import SetViewButtons from "./SetViewButtons";
 import type { ViewMode } from "@/App";
 import type { TaskViewModel } from "@/types/tasks";
+import { useQuery } from "@tanstack/react-query";
+import { categoriesApi } from "@/api/categories/api";
 
 interface DayCalendarProps {
   selectedDate: Date;
@@ -26,6 +29,12 @@ export function DayCalendar({
   setViewMode,
   getViewMode,
 }: DayCalendarProps) {
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["categories"],
+    queryFn: categoriesApi.getAll,
+    staleTime: 2 * 60 * 1000, // 2 минуты
+  });
+
   const dayEvents = getEventsForDay(events, selectedDate);
   const isTodayDate = isToday(selectedDate);
 
@@ -36,17 +45,14 @@ export function DayCalendar({
   });
 
   const getEventPosition = (event: TaskViewModel) => {
-    // const [startHour, startMin] = event.startDate
-    //   .split("T")[1]
-    //   .split(":")
-    //   .map(Number);
-    // const [endHour, endMin] = event.endDate
-    //   .split("T")[1]
-    //   .split(":")
-    //   .map(Number);
-
     const startDate = new Date(event.startDate);
-    const endDate = new Date(event.endDate);
+    const endDate = event.endDate
+      ? new Date(event.endDate)
+      : new Date(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate() + 1
+        ); // 00:00 следующего дня, т.е. на весь текущий день
 
     const startMinutes = startDate.getHours() * 60 + startDate.getMinutes();
     const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60);
@@ -141,19 +147,16 @@ export function DayCalendar({
             const position = getEventPosition(event);
             const eventColor = event.color
               ? event.color
-              : getColorByLabel(event.category1Id);
+              : !isPending && !isError
+                ? getCategoryColorById(event.category1Id, data.categories)
+                : getFallBackColor();
             return (
               <div
-                key={event.id}
+                key={event.taskId}
                 className="absolute left-4 right-4 rounded-lg p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 style={{
                   ...position,
-                  backgroundColor: `${
-                    EVENT_COLORS.find((elem) => elem.label == event.category1Id)
-                      ?.color
-                      ? hexToRgba(eventColor, 0.1)
-                      : "transparent"
-                  }`,
+                  backgroundColor: `${hexToRgba(eventColor, 0.1)}`,
                   borderLeft: `4px solid ${eventColor}`,
                 }}
               >
@@ -174,16 +177,14 @@ export function DayCalendar({
                   />
                 </div>
                 <p className="text-sm text-[#4A403A]/70 mb-1">
-                  {formatTime(event.startDate)}-{formatTime(event.endDate)}
+                  {formatTime(event.startDate)}
+                  {event.endDate
+                    ? `-${formatTime(event.endDate)}`
+                    : ` - весь день`}
                 </p>
                 {event.address && (
                   <p className="text-sm text-[#4A403A]/60">
                     📍 {event.address}
-                  </p>
-                )}
-                {event.description && (
-                  <p className="text-sm text-[#4A403A]/60 mt-2">
-                    {event.description}
                   </p>
                 )}
               </div>

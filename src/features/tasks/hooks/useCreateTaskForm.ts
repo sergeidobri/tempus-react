@@ -7,6 +7,9 @@ import {
 import { tasksApi } from "@/api/tasks/api";
 import type { CreateTaskRequest } from "@/api/tasks/types";
 import { stringDateToISOString } from "@/utils/calendar";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { TaskViewModel } from "@/types/tasks";
+import type { UserViewModel } from "@/types/users";
 
 type UseCreateTaskFormProps = {
   onSuccess?: () => void;
@@ -18,6 +21,8 @@ export const useCreateTaskForm = ({
   onSuccess,
   onModalClose,
 }: UseCreateTaskFormProps = {}) => {
+  const queryClient = useQueryClient();
+
   const form = useForm<CreateTaskFormData>({
     resolver: zodResolver(createTaskSchemaWithTimeCheck),
     defaultValues: {
@@ -32,6 +37,31 @@ export const useCreateTaskForm = ({
       address: "",
       description: "",
       color: null,
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: (task: CreateTaskRequest) => tasksApi.createTask(task),
+    onSuccess: (newTask) => {
+      queryClient.setQueryData(
+        ["tasks"],
+        (old: { tasks: TaskViewModel[]; authors: UserViewModel[] }) => {
+          if (!old) return { tasks: [newTask], authors: [] };
+          return {
+            tasks: [...old.tasks, newTask],
+            authors: old.authors,
+          };
+        }
+      );
+
+      onSuccess?.();
+      onModalClose?.();
+      form.reset();
+    },
+    onError: (error: any) => {
+      console.error("Failed to create task", error);
+      const message = error.response?.data?.message || "Ошибка создания задачи";
+      form.setError("root", { message });
     },
   });
 
@@ -61,21 +91,13 @@ export const useCreateTaskForm = ({
       })
     ) as CreateTaskRequest;
 
-    try {
-      console.log(task);
-      await tasksApi.createTask(task);
-      onSuccess?.();
-      onModalClose?.();
-      form.reset();
-    } catch (error: any) {
-      console.error("Failed to create task", error);
-      const message = error.response?.data?.message || "Ошибка создания задачи";
-      form.setError("root", { message });
-    }
+    console.log(task);
+    mutation.mutate(task);
   };
 
   return {
     ...form,
     onSubmit,
+    isPending: mutation.isPending,
   };
 };

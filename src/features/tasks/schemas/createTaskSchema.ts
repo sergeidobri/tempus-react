@@ -21,14 +21,14 @@ export const createTaskSchema = z.object({
   categoryIds: z
     .array(z.object({ categoryId: z.string(), priority: z.number() }))
     .optional(),
-  address: z.string().optional(),
-  description: z.string().optional(),
+  address: z.string().max(120, "Макс. длина 120 символов").optional(),
+  description: z.string().max(300, "Ошибка: длинное описание").optional(),
   color: z
     .string()
     .regex(/^#([0-9a-f]{6}|[0-9a-f]{3})$/, "Неверный формат цвета")
     .nullable()
     .optional(),
-  shares: z.array(z.string()).optional(),
+  shares: z.array(z.object({ sharedWithUserId: z.string() })).optional(),
 });
 
 // Валидация: endTime > startTime
