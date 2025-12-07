@@ -16,6 +16,7 @@ export default function App() {
   const { data, isPending, isError } = useQuery({
     queryKey: ["tasks"],
     queryFn: tasksApi.get,
+    structuralSharing: false,
   });
 
   const [currentDateSmallCalendar, setCurrentDateSmallCalendar] = useState(
@@ -63,8 +64,6 @@ export default function App() {
     return <div>Error</div>;
   }
 
-  const events = data.tasks;
-
   return (
     <>
       {/* Main Content */}
@@ -75,12 +74,12 @@ export default function App() {
             <MiniCalendar
               currentDate={currentDateSmallCalendar}
               selectedDate={selectedDate}
-              events={events}
+              events={data.tasks}
               onDateSelect={handleDateSelect}
               onMonthChange={handleSmallCalendarMonthChange}
             />
 
-            <DailySchedule selectedDate={selectedDate} events={events} />
+            <DailySchedule selectedDate={selectedDate} events={data.tasks} />
           </div>
 
           {/* Right Column - Main Calendar */}
@@ -90,7 +89,7 @@ export default function App() {
               <MonthCalendar
                 currentDate={currentDate}
                 selectedDate={selectedDate}
-                events={events}
+                events={data.tasks}
                 onDateSelect={handleDateSelect}
                 onMonthChange={handleMonthChange}
                 setViewMode={setViewMode}
@@ -102,7 +101,7 @@ export default function App() {
               <WeekCalendar
                 currentDate={currentDate}
                 selectedDate={selectedDate}
-                events={events}
+                events={data.tasks}
                 onDateSelect={handleDateSelect}
                 onWeekChange={handleWeekChange}
                 setViewMode={setViewMode}
@@ -113,7 +112,7 @@ export default function App() {
             {viewMode === "day" && (
               <DayCalendar
                 selectedDate={selectedDate}
-                events={events}
+                events={data.tasks}
                 onDateChange={handleDayChange}
                 setViewMode={setViewMode}
                 getViewMode={getViewMode}

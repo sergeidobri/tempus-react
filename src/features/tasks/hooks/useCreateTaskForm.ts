@@ -25,23 +25,10 @@ export const useCreateTaskForm = ({
 
   const form = useForm<CreateTaskFormData>({
     resolver: zodResolver(createTaskSchemaWithTimeCheck),
-    defaultValues: {
-      title: "",
-      startDate: undefined,
-      startTime: null,
-      endDate: undefined,
-      endTime: null,
-      fullDay: false,
-      categoryIds: [],
-      shares: [],
-      address: "",
-      description: "",
-      color: null,
-    },
   });
 
   const mutation = useMutation({
-    mutationFn: (task: CreateTaskRequest) => tasksApi.createTask(task),
+    mutationFn: (task: CreateTaskRequest) => tasksApi.create(task),
     onSuccess: (newTask) => {
       queryClient.setQueryData(
         ["tasks"],
@@ -91,7 +78,6 @@ export const useCreateTaskForm = ({
       })
     ) as CreateTaskRequest;
 
-    console.log(task);
     mutation.mutate(task);
   };
 

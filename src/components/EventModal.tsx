@@ -1,16 +1,19 @@
 import { X } from "lucide-react";
 import { useRef } from "react";
-import CreateTaskForm, {
-  type CreateTaskFormHandle,
-} from "@/features/tasks/components/CreateTaskForm";
+import TaskForm, {
+  type TaskFormHandle,
+} from "@/features/tasks/components/TaskForm";
+import type { EventModalMode } from "@/store/eventModalStore";
 
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
+  mode: EventModalMode;
+  taskId: string | null; // только для edit
 }
 
-export function EventModal({ isOpen, onClose }: EventModalProps) {
-  const formRef = useRef<CreateTaskFormHandle>(null);
+export function EventModal({ isOpen, onClose, mode, taskId }: EventModalProps) {
+  const formRef = useRef<TaskFormHandle>(null);
   const handleModalClose = () => {
     formRef.current?.reset();
     onClose();
@@ -33,7 +36,9 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
         }}
       >
         <div className="flex items-center flex-shrink-0 justify-between mb-6">
-          <h2 className="text-[#4A403A]">Создать событие</h2>
+          <h2 className="text-[#4A403A]">
+            {mode === "create" ? "Создать событие" : "Редактировать событие"}
+          </h2>
           <button
             onClick={() => {
               handleModalClose();
@@ -44,7 +49,7 @@ export function EventModal({ isOpen, onClose }: EventModalProps) {
           </button>
         </div>
 
-        <CreateTaskForm onClose={onClose} ref={formRef} />
+        <TaskForm onClose={onClose} ref={formRef} mode={mode} taskId={taskId} />
       </div>
     </div>
   );

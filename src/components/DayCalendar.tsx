@@ -1,6 +1,5 @@
 import {
   getEventsForDay,
-  EVENT_COLORS,
   isToday,
   hexToRgba,
   formatTimeFromString as formatTime,

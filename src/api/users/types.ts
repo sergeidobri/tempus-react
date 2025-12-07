@@ -9,3 +9,9 @@ export interface MatchEmailRequest {
 export interface MatchEmailResponse {
   users: UserViewModel[];
 }
+
+export interface ProfileGetResponse {
+  email: string;
+  name: string;
+  avatarUrl: string | null;
+}

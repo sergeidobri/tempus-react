@@ -1,4 +1,9 @@
-import type { TaskCategory, TaskModel, TaskShare, TaskViewModel } from "@/types/tasks";
+import type {
+  TaskCategory,
+  TaskModel,
+  TaskShare,
+  TaskViewModel,
+} from "@/types/tasks";
 import type { UserViewModel } from "@/types/users";
 
 // requests
@@ -15,6 +20,26 @@ export interface CreateTaskRequest {
 
 export interface GetTaskByIdRequest {
   taskId: string;
+}
+
+interface ChangeCategoryFields {
+  categoryId: string;
+  priority: number;
+}
+
+interface ChangeSharesFields {
+  sharedWithUserId: string;
+}
+
+export interface UpdateTaskRequest {
+  title?: string;
+  description?: string;
+  address?: string;
+  startDate?: string;
+  endDate?: string;
+  color?: string;
+  categories?: ChangeCategoryFields[];
+  shares?: ChangeSharesFields[];
 }
 
 // responses

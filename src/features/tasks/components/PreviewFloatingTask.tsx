@@ -1,5 +1,6 @@
 import { tasksApi } from "@/api/tasks/api";
 import PreviewContent from "@/components/PreviewContent";
+import { useEventModalStore } from "@/store/eventModalStore";
 import {
   useFloating,
   useClick,
@@ -56,6 +57,8 @@ export const PreviewFloatingTask = ({
     role,
   ]);
 
+  const { openEdit } = useEventModalStore();
+
   return (
     <>
       <div ref={refs.setReference} {...getReferenceProps()}>
@@ -76,7 +79,16 @@ export const PreviewFloatingTask = ({
               {error instanceof Error ? error.message : "Не удалось загрузить"}
             </div>
           )}
-          {taskInfo && <PreviewContent info={taskInfo} />}
+          {taskInfo && (
+            <PreviewContent
+              info={taskInfo}
+              onEdit={() => {
+                openEdit(taskId); // ← вот так!
+                setOpen(false);
+              }}
+              onClose={() => setOpen(false)}
+            />
+          )}
         </div>
       )}
     </>

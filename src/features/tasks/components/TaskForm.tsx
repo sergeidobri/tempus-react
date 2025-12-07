@@ -10,7 +10,7 @@ import {
 } from "react";
 import type { CreateTaskFormData } from "@/features/tasks/schemas/createTaskSchema";
 import { Input } from "@/components/ui/Input";
-import { ChevronRight, Star, X } from "lucide-react";
+import { ChevronRight, Loader, Star, X } from "lucide-react";
 import { togglePopover } from "@/utils/popovers";
 import { usersApi } from "@/api/users/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,18 +18,26 @@ import { categoriesApi } from "@/api/categories/api";
 import { PopoverPortal } from "@/components/PopoverPortal";
 import { getCategoryColor } from "@/utils/calendar";
 import type { CategoryGetResponse } from "@/api/categories/types";
+import type { EventModalMode } from "@/store/eventModalStore";
+import { tasksApi } from "@/api/tasks/api";
+import { format } from "date-fns";
+import type { GetTaskResponse, UpdateTaskRequest } from "@/api/tasks/types";
+import { transformTaskFormToUpdateRequest } from "../utils/transformTaskFormToUpdate";
+import type { TaskViewModel } from "@/types/tasks";
 
-interface CreateTaskFormProps {
+interface TaskFormProps {
+  mode: EventModalMode;
+  taskId: string | null;
   onClose: () => void;
   onReset?: () => void;
 }
 
-export interface CreateTaskFormHandle {
+export interface TaskFormHandle {
   reset: () => void;
 }
 
-const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
-  ({ onClose }, ref) => {
+const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
+  ({ onClose, mode, taskId }, ref) => {
     // form arrays:
     const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
       []
@@ -65,6 +73,17 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
       left: 0,
     });
 
+    const {
+      data: taskData,
+      isLoading: isTaskLoading,
+      isError: isTaskError,
+    } = useQuery({
+      queryKey: ["task", taskId],
+      queryFn: () =>
+        taskId ? tasksApi.getById(taskId) : Promise.resolve(null),
+      enabled: mode === "edit" && !!taskId,
+    });
+
     const onModalClose = () => {
       setSelectedCategoryIds([]);
       setSelectedUsers([]);
@@ -84,6 +103,60 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
       onModalClose: onModalClose,
     });
 
+    useEffect(() => {
+      if (mode === "create") {
+        // Сброс при создании (на всякий случай)
+        reset();
+        setSelectedUsers([]);
+        setSelectedCategoryIds([]);
+        setShowAdditionalFields(false);
+        setFullDay(false);
+        setNoColor(true);
+        return;
+      }
+
+      // Режим редактирования
+      if (mode === "edit" && taskData) {
+        const task = taskData.task;
+
+        reset({
+          title: task.title || "",
+          address: task.address || "",
+          description: task.description || "",
+          // Даты:
+          startDate: task.startDate ? format(task.startDate, "yyyy-MM-dd") : "",
+          startTime: task.startDate ? format(task.startDate, "HH:mm") : "",
+          endDate: task.endDate ? format(task.endDate, "yyyy-MM-dd") : "",
+          endTime: task.endDate ? format(task.endDate, "HH:mm") : "",
+          fullDay: task.endDate == null,
+          color: task.color || null,
+        });
+
+        // 2. Участники
+        const shares = task.shares || [];
+        const users = taskData.users || [];
+        const sharedUsers = shares
+          .map((share) => users.find((u) => u.id === share.sharedWithUserId))
+          .filter(Boolean) as UserViewModel[];
+        setSelectedUsers(sharedUsers);
+
+        // 3. Категории
+        const categories = task.categories || [];
+        const categoryIds = categories.map((link) => link.categoryId);
+        setSelectedCategoryIds(categoryIds);
+
+        // 4. Доп. поля
+        setShowAdditionalFields(true);
+
+        // 5. Full day
+        const isFullDay = !task.endDate;
+        setFullDay(isFullDay);
+
+        // 6. Цвет
+        setNoColor(!task.color);
+      }
+    }, [mode, taskData, reset]);
+
     const handleReset = useCallback(() => {
       reset();
       onModalClose();
@@ -91,32 +164,32 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
 
     useImperativeHandle(ref, () => ({ reset: handleReset }), [handleReset]);
 
-    const onSubmitWrapper = (data: CreateTaskFormData) => {
-      data.shares = selectedUsers.map((user) => ({
-        sharedWithUserId: user.id,
-      }));
-      if (!showAdditionalFields) {
-        delete data.startDate;
-        delete data.startTime;
-        delete data.endDate;
-        delete data.endTime;
-        delete data.categoryIds;
-        delete data.color;
-      } else {
-        data.categoryIds = selectedCategoryIds.map((item, index) => ({
-          categoryId: item,
-          priority: index + 1,
-        }));
-      }
-      if (noColor) {
-        delete data.color;
-      }
-      if (fullDay) {
-        delete data.endDate;
-        delete data.endTime;
-      }
-      return onSubmit(data);
-    };
+    // const onSubmitWrapper = (data: CreateTaskFormData) => {
+    //   data.shares = selectedUsers.map((user) => ({
+    //     sharedWithUserId: user.id,
+    //   }));
+    //   if (!showAdditionalFields) {
+    //     delete data.startDate;
+    //     delete data.startTime;
+    //     delete data.endDate;
+    //     delete data.endTime;
+    //     delete data.categoryIds;
+    //     delete data.color;
+    //   } else {
+    //     data.categoryIds = selectedCategoryIds.map((item, index) => ({
+    //       categoryId: item,
+    //       priority: index + 1,
+    //     }));
+    //   }
+    //   if (noColor) {
+    //     delete data.color;
+    //   }
+    //   if (fullDay) {
+    //     delete data.endDate;
+    //     delete data.endTime;
+    //   }
+    //   return onSubmit(data);
+    // };
 
     useEffect(() => {
       if (
@@ -151,6 +224,37 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
     }, [isSharePopoverOpen, isCategoryPopoverOpen]);
 
     const queryClient = useQueryClient();
+
+    const updateMutation = useMutation({
+      mutationFn: ({ id, data }: { id: string; data: UpdateTaskRequest }) =>
+        tasksApi.update(id, data),
+      onSuccess: (updatedTask) => {
+        if (!updatedTask) return;
+        const taskId = updatedTask.taskId;
+
+        queryClient.setQueryData(
+          ["tasks"],
+          (
+            old:
+              | { tasks: TaskViewModel[]; authors: UserViewModel[] }
+              | undefined
+          ) => {
+            if (!old) return old;
+            return {
+              ...old,
+              tasks: old.tasks.map((task) =>
+                task.taskId === taskId ? updatedTask : task
+              ),
+            };
+          }
+        );
+
+        queryClient.refetchQueries({ queryKey: ["task", taskId] });
+
+        onClose();
+        onModalClose();
+      },
+    });
 
     const {
       data: availableCategories,
@@ -191,6 +295,64 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
           console.error("Не удалось создать категорию", error);
         },
       });
+
+    const onSubmitWrapper = (data: CreateTaskFormData) => {
+      const payload: CreateTaskFormData = {
+        title: data.title,
+        shares: selectedUsers.map((u) => ({ sharedWithUserId: u.id })),
+      };
+
+      if (data.address != null) payload.address = data.address;
+      if (data.description != null) payload.description = data.description;
+
+      if (showAdditionalFields) {
+        if (data.startDate) payload.startDate = data.startDate;
+        if (data.startTime) payload.startTime = data.startTime;
+
+        if (!fullDay) {
+          if (data.endDate) payload.endDate = data.endDate;
+          if (data.endTime) payload.endTime = data.endTime;
+        }
+
+        if (selectedCategoryIds.length > 0) {
+          payload.categoryIds = selectedCategoryIds.map((id, i) => ({
+            categoryId: id,
+            priority: i + 1,
+          }));
+        }
+
+        if (!noColor && data.color) {
+          payload.color = data.color;
+        }
+      }
+
+      if (mode === "create") {
+        onSubmit(payload);
+      } else if (mode === "edit" && taskId) {
+        const updatePayload = transformTaskFormToUpdateRequest(data, {
+          showAdditionalFields,
+          fullDay,
+          selectedCategoryIds,
+          selectedUsers,
+          noColor,
+        });
+
+        console.log(updatePayload);
+        updateMutation.mutate({ id: taskId, data: updatePayload });
+      }
+    };
+
+    if (mode === "edit" && isTaskLoading) {
+      return (
+        <div className="flex items-center justify-center h-32">
+          <Loader size={24} className="text-[#CFA492]" />
+        </div>
+      );
+    }
+
+    if (mode === "edit" && isTaskError) {
+      return <div className="text-red-500">Не удалось загрузить задачу</div>;
+    }
 
     return (
       <form
@@ -779,4 +941,4 @@ const CreateTaskForm = forwardRef<CreateTaskFormHandle, CreateTaskFormProps>(
   }
 );
 
-export default CreateTaskForm;
+export default TaskForm;

@@ -1,4 +1,8 @@
-import type { MatchEmailRequest, MatchEmailResponse } from "./types";
+import type {
+  MatchEmailRequest,
+  MatchEmailResponse,
+  ProfileGetResponse,
+} from "./types";
 import apiClient from "../apiClient";
 import { USERS_ENDPOINTS } from "./endpoints";
 
@@ -10,6 +14,16 @@ export const usersApi = {
     } catch (error) {
       console.error(error);
       return { users: [] };
+    }
+  },
+
+  getProfile: async (): Promise<ProfileGetResponse | null> => {
+    try {
+      const response = await apiClient.get(USERS_ENDPOINTS.PROFILE);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      return null;
     }
   },
 };

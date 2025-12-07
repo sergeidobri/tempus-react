@@ -1,6 +1,5 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { AUTH_ENDPOINTS } from "./auth/endpoints";
-import { navigate } from "@/utils/navigate";
 import { getAccessToken, useAuthStore } from "@/store/authStore";
 
 let isRefreshing = false;
