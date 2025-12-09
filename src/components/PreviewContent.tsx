@@ -39,6 +39,9 @@ const PreviewContent = ({ info, onEdit, onClose }: PreviewContentProps) => {
     .filter(Boolean) as typeof users;
 
   const taskCategories = task.categories
+    .sort((a, b) => {
+      return a.priority - b.priority;
+    })
     .map((link) => data.categories.find((c) => c.id === link.categoryId))
     .filter(Boolean) as CategoryModel[];
 

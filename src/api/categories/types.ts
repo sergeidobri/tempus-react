@@ -5,6 +5,10 @@ export interface CategoryCreateRequest {
   name: string;
 }
 
+export interface UpdateCategoryRequest {
+  color: string;
+}
+
 // responses
 export interface CategoryGetResponse {
   categories: CategoryModel[];
@@ -14,4 +18,5 @@ export interface CategoryCreateResponse {
   id: string;
   name: string;
   color: string;
+  isSystem: boolean;
 }

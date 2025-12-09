@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { MiniCalendar } from "./components/MiniCalendar";
-import { MonthCalendar } from "./components/MonthCalendar";
-import { WeekCalendar } from "./components/WeekCalendar";
-import { DayCalendar } from "./components/DayCalendar";
-import { DailySchedule } from "./components/DailySchedule";
+import { MiniCalendar } from "./components/layout/MiniCalendar";
+import { DayCalendar } from "./components/layout/modes/DayCalendar";
+import { DailySchedule } from "./components/layout/DailySchedule";
 import { tasksApi } from "./api/tasks/api";
 import { useQuery } from "@tanstack/react-query";
+import { MonthCalendar } from "./components/layout/modes/MonthCalendar";
+import { WeekCalendar } from "./components/layout/modes/WeekCalendar";
 
 export type ViewMode = "day" | "week" | "month";
 

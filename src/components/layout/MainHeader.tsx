@@ -5,9 +5,10 @@ import { useState } from "react";
 
 interface MainHeaderProps {
   onCreateEvent: () => void;
+  onSettingsOpen: () => void;
 }
 
-export function MainHeader({ onCreateEvent }: MainHeaderProps) {
+export function MainHeader({ onCreateEvent, onSettingsOpen }: MainHeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   return (
     <>
@@ -43,7 +44,13 @@ export function MainHeader({ onCreateEvent }: MainHeaderProps) {
                 <User size={16} />
                 Профиль
               </button>
-              <button className="w-full px-4 py-2 text-left text-sm text-[#4A403A] hover:bg-[#FFF5EB] flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setShowDropdown(false);
+                  onSettingsOpen();
+                }}
+                className="w-full px-4 py-2 text-left text-sm text-[#4A403A] hover:bg-[#FFF5EB] flex items-center gap-2"
+              >
                 <Settings size={16} />
                 Настройки
               </button>

@@ -37,7 +37,7 @@ export interface CategoryModel {
   id: string;
   name: string;
   color: string | null;
-  authorId?: string | null;
+  isSystem: boolean;
 }
 
 export const CATEGORIES = [

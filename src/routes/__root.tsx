@@ -1,11 +1,12 @@
-import { EventModal } from "@/components/EventModal";
+import { EventModal } from "@/components/modals/EventModal";
 import { Header } from "@/components/layout/Header";
+import SettingsModal from "@/components/modals/SettingsModal";
 import { useEventModalStore } from "@/store/eventModalStore";
 import { setNavigate } from "@/utils/navigate";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRootRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ToastContainer } from "react-toastify";
 
 const queryClient = new QueryClient();
@@ -16,7 +17,13 @@ const RootLayout = () => {
     setNavigate((path: string) => navigate({ to: path }));
   }, [navigate]);
 
-  const { isOpen, mode, taskId, close } = useEventModalStore();
+  const {
+    isOpen: isEventModalOpen,
+    mode,
+    taskId,
+    close,
+  } = useEventModalStore();
+  const [isSettingsModalOpen, setIsSettigsModalOpen] = useState(false);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -43,17 +50,22 @@ const RootLayout = () => {
         </div>
         <Header
           onCreateEvent={() => useEventModalStore.getState().openCreate()}
+          onSettingsOpen={() => setIsSettigsModalOpen(true)}
         />
         <Outlet />
         <TanStackRouterDevtools />
 
         {/* Event Modal */}
         <EventModal
-          isOpen={isOpen}
+          isOpen={isEventModalOpen}
           mode={mode}
           taskId={taskId}
           onClose={close}
         />
+
+        {isSettingsModalOpen && (
+          <SettingsModal onClose={() => setIsSettigsModalOpen(false)} />
+        )}
 
         <ToastContainer
           position="top-right"

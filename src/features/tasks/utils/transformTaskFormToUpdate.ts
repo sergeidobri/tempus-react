@@ -23,13 +23,16 @@ export const transformTaskFormToUpdateRequest = (
   const rawRequest: UpdateTaskRequest = {
     title: data.title,
     shares: selectedUsers.map((u) => ({ sharedWithUserId: u.id })),
+    address: data.address,
+    description: data.description,
   };
 
-  // Опциональные поля — только если они заданы
-  if (data.address) rawRequest.address = data.address;
-  if (data.description) rawRequest.description = data.description;
-
   if (showAdditionalFields) {
+    if (noColor) {
+      rawRequest.color = null;
+    } else {
+      rawRequest.color = data.color;
+    }
     // Склеиваем даты
     if (data.startDate && data.startTime) {
       rawRequest.startDate = stringDateToISOString(
@@ -41,30 +44,15 @@ export const transformTaskFormToUpdateRequest = (
       rawRequest.endDate = stringDateToISOString(
         `${data.endDate}T${data.endTime}`
       );
+    } else if (fullDay) {
+      rawRequest.endDate = null;
     }
 
-    // Категории
-    if (selectedCategoryIds.length > 0) {
-      rawRequest.categories = selectedCategoryIds.map((categoryId, index) => ({
-        categoryId,
-        priority: index + 1,
-      }));
-    }
-
-    // Цвет
-    if (!noColor && data.color) {
-      rawRequest.color = data.color;
-    }
+    rawRequest.categories = selectedCategoryIds.map((categoryId, index) => ({
+      categoryId,
+      priority: index + 1,
+    }));
   }
 
-  const cleaned = Object.fromEntries(
-    Object.entries(rawRequest).filter(([key, value]) => {
-      if (key == "shares") return true;
-      if (value == null) return false;
-      if (Array.isArray(value) && value.length === 0) return false;
-      return true;
-    })
-  );
-
-  return cleaned as UpdateTaskRequest;
+  return rawRequest as UpdateTaskRequest;
 };

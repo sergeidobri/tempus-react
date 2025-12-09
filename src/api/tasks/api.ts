@@ -46,15 +46,6 @@ export const tasksApi = {
     await apiClient.delete(
       `${TASKS_ENDPOINTS.DELETE_TASK}/${encodeURIComponent(id)}`
     );
-    // try {
-    //   await apiClient.delete(
-    //     `${TASKS_ENDPOINTS.DELETE_TASK}/${encodeURIComponent(id)}`
-    //   );
-    // } catch (error) {
-    //   console.log(error);
-    // } finally {
-    //   return;
-    // }
   },
 
   update: async (

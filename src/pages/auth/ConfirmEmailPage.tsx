@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearch } from "@tanstack/react-router";
 import { toast } from "react-toastify";
 import { authApi } from "@/api/auth/api";
@@ -7,9 +7,14 @@ import { Route as loginRoute } from "@/routes/auth/login";
 
 const ConfirmEmailPage = () => {
   const search = useSearch({ strict: false });
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
     const confirmEmail = async () => {
+      // Защита от двойного вызова в Strict Mode
+      if (hasProcessed.current) return;
+      hasProcessed.current = true;
+
       const token = search.token;
 
       if (!token) {
@@ -21,15 +26,17 @@ const ConfirmEmailPage = () => {
       try {
         const response = await authApi.confirmEmail({ token });
         if (response.status === 200) {
-          toast.success("The email was successfully confirmed!");
+          toast.success("Адрес электронной почты был успешно подтвержден!");
         } else {
-          toast.error("Unknown error while confirming email.");
+          toast.error(
+            "Возникла неизвестная ошибка во время подтверждения почты"
+          );
         }
       } catch (error: any) {
         if (error.response?.status >= 400 && error.response?.status < 500) {
-          toast.error("Error while confirming. The link is expired or invalid");
+          toast.error("Ссылка устарела или недействительна");
         } else {
-          toast.error("An error occured while confirming an email.");
+          toast.error("Возникла ошибка во время подтверждения почты");
         }
       } finally {
         navigate(loginRoute.to);
@@ -39,7 +46,7 @@ const ConfirmEmailPage = () => {
     confirmEmail();
   }, [search, navigate]);
 
-  return <div>Confirming...</div>;
+  return <div>Подтверждение...</div>;
 };
 
 export default ConfirmEmailPage;

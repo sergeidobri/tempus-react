@@ -5,7 +5,7 @@ import {
   getEventsForDay,
   getCategoryColorById,
   getFallBackColor,
-} from "../utils/calendar";
+} from "../../utils/calendar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { categoriesApi } from "@/api/categories/api";

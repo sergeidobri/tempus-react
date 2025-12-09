@@ -5,9 +5,9 @@ import {
   formatTimeFromString as formatTime,
   getCategoryColorById,
   getFallBackColor,
-} from "../utils/calendar";
+} from "@/utils/calendar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import SetViewButtons from "./SetViewButtons";
+import SetViewButtons from "@/components/ui/SetViewButtons";
 import type { ViewMode } from "@/App";
 import type { TaskViewModel } from "@/types/tasks";
 import { useQuery } from "@tanstack/react-query";

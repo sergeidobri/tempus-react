@@ -15,15 +15,15 @@ import { togglePopover } from "@/utils/popovers";
 import { usersApi } from "@/api/users/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { categoriesApi } from "@/api/categories/api";
-import { PopoverPortal } from "@/components/PopoverPortal";
+import { PopoverPortal } from "@/components/layout/PopoverPortal";
 import { getCategoryColor } from "@/utils/calendar";
 import type { CategoryGetResponse } from "@/api/categories/types";
 import type { EventModalMode } from "@/store/eventModalStore";
 import { tasksApi } from "@/api/tasks/api";
 import { format } from "date-fns";
-import type { GetTaskResponse, UpdateTaskRequest } from "@/api/tasks/types";
-import { transformTaskFormToUpdateRequest } from "../utils/transformTaskFormToUpdate";
+import type { UpdateTaskRequest } from "@/api/tasks/types";
 import type { TaskViewModel } from "@/types/tasks";
+import { transformTaskFormToUpdateRequest } from "../utils/transformTaskFormToUpdate";
 
 interface TaskFormProps {
   mode: EventModalMode;
@@ -142,7 +142,11 @@ const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
 
         // 3. Категории
         const categories = task.categories || [];
-        const categoryIds = categories.map((link) => link.categoryId);
+        const categoryIds = categories
+          .sort((a, b) => {
+            return a.priority - b.priority;
+          })
+          .map((link) => link.categoryId);
         setSelectedCategoryIds(categoryIds);
 
         // 4. Доп. поля
@@ -163,33 +167,6 @@ const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
     }, []);
 
     useImperativeHandle(ref, () => ({ reset: handleReset }), [handleReset]);
-
-    // const onSubmitWrapper = (data: CreateTaskFormData) => {
-    //   data.shares = selectedUsers.map((user) => ({
-    //     sharedWithUserId: user.id,
-    //   }));
-    //   if (!showAdditionalFields) {
-    //     delete data.startDate;
-    //     delete data.startTime;
-    //     delete data.endDate;
-    //     delete data.endTime;
-    //     delete data.categoryIds;
-    //     delete data.color;
-    //   } else {
-    //     data.categoryIds = selectedCategoryIds.map((item, index) => ({
-    //       categoryId: item,
-    //       priority: index + 1,
-    //     }));
-    //   }
-    //   if (noColor) {
-    //     delete data.color;
-    //   }
-    //   if (fullDay) {
-    //     delete data.endDate;
-    //     delete data.endTime;
-    //   }
-    //   return onSubmit(data);
-    // };
 
     useEffect(() => {
       if (
@@ -306,6 +283,12 @@ const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
       if (data.description != null) payload.description = data.description;
 
       if (showAdditionalFields) {
+        payload.fullDay = data.fullDay;
+        if (noColor) {
+          payload.color = null;
+        } else {
+          payload.color = data.color;
+        }
         if (data.startDate) payload.startDate = data.startDate;
         if (data.startTime) payload.startTime = data.startTime;
 
@@ -320,12 +303,9 @@ const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
             priority: i + 1,
           }));
         }
-
-        if (!noColor && data.color) {
-          payload.color = data.color;
-        }
       }
 
+      console.log(payload);
       if (mode === "create") {
         onSubmit(payload);
       } else if (mode === "edit" && taskId) {
@@ -816,6 +796,10 @@ const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
                             e.stopPropagation();
                             if (!newCategoryName.trim()) return;
                             try {
+                              console.log({
+                                name: newCategoryName.trim(),
+                                color: newCategoryColor,
+                              });
                               const newCat = await createCategory({
                                 name: newCategoryName.trim(),
                                 color: newCategoryColor,
@@ -826,13 +810,6 @@ const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
                                   newCat.id,
                                 ]);
                               }
-
-                              // надо ли?:
-
-                              // setNewCategoryColor("#3b82f6");
-                              // setNewCategoryName("");
-                              // setIsCreating(false);
-                              // setIsCategoryPopoverOpen(false);
                             } catch (error) {
                               console.error(
                                 "Не удалось создать категорию",

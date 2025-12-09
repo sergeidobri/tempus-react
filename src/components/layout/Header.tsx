@@ -7,9 +7,10 @@ import { AuthHeader } from "./AuthHeader";
 
 interface HeaderProps {
   onCreateEvent: () => void;
+  onSettingsOpen: () => void;
 }
 
-export function Header({ onCreateEvent }: HeaderProps) {
+export function Header({ onCreateEvent, onSettingsOpen }: HeaderProps) {
   const isAuthenticated = useAuthStore().isAuthenticated();
 
   return (
@@ -26,7 +27,7 @@ export function Header({ onCreateEvent }: HeaderProps) {
         {/* Actions */}
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
-            <MainHeader onCreateEvent={onCreateEvent} />
+            <MainHeader onCreateEvent={onCreateEvent} onSettingsOpen={onSettingsOpen} />
           ) : (
             <AuthHeader />
           )}

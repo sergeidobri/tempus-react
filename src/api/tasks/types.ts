@@ -36,8 +36,8 @@ export interface UpdateTaskRequest {
   description?: string;
   address?: string;
   startDate?: string;
-  endDate?: string;
-  color?: string;
+  endDate?: string | null;
+  color?: string | null;
   categories?: ChangeCategoryFields[];
   shares?: ChangeSharesFields[];
 }

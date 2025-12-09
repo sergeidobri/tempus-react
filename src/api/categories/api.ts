@@ -1,9 +1,11 @@
+import type { CategoryModel } from "@/types/tasks";
 import apiClient from "../apiClient";
 import { CATEGORIES_ENDPOINTS } from "./endpoints";
 import type {
   CategoryCreateRequest,
   CategoryCreateResponse,
   CategoryGetResponse,
+  UpdateCategoryRequest,
 } from "./types";
 
 // const categories = [
@@ -21,6 +23,11 @@ import type {
 //   { id: "sys-relationships", name: "Отношения", color: null, authorId: null },
 //   { id: "sys-beauty", name: "Красота", color: null, authorId: null },
 // ];
+
+interface UpdateProps {
+  id: string;
+  data: UpdateCategoryRequest;
+}
 
 export const categoriesApi = {
   getAll: async (): Promise<CategoryGetResponse> => {
@@ -46,5 +53,18 @@ export const categoriesApi = {
       console.error(error);
       return null;
     }
+  },
+
+  delete: async (id: string) => {
+    return await apiClient.delete(
+      `${CATEGORIES_ENDPOINTS.DELETE}/${encodeURIComponent(id)}`
+    );
+  },
+
+  update: async ({ id, data }: UpdateProps): Promise<CategoryModel> => {
+    return await apiClient.patch(
+      `${CATEGORIES_ENDPOINTS.UPDATE}/${encodeURIComponent(id)}`,
+      data
+    );
   },
 };
