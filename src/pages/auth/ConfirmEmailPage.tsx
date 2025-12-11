@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useSearch } from "@tanstack/react-router";
 import { toast } from "react-toastify";
 import { authApi } from "@/api/auth/api";
 import { navigate } from "@/utils/navigate";
 import { Route as loginRoute } from "@/routes/auth/login";
+import { AxiosError } from "axios";
 
 const ConfirmEmailPage = () => {
   const search = useSearch({ strict: false });
@@ -32,10 +33,20 @@ const ConfirmEmailPage = () => {
             "Возникла неизвестная ошибка во время подтверждения почты"
           );
         }
-      } catch (error: any) {
-        if (error.response?.status >= 400 && error.response?.status < 500) {
-          toast.error("Ссылка устарела или недействительна");
+      } catch (error) {
+        // error имеет тип unknown — проверяем
+        if (error instanceof AxiosError) {
+          if (
+            error.response?.status &&
+            error.response?.status >= 400 &&
+            error.response.status < 500
+          ) {
+            toast.error("Ссылка устарела или недействительна");
+          } else {
+            toast.error("Возникла ошибка во время подтверждения почты");
+          }
         } else {
+          // Не Axios-ошибка (например, сетевая проблема, отмена запроса и т.д.)
           toast.error("Возникла ошибка во время подтверждения почты");
         }
       } finally {
@@ -44,7 +55,7 @@ const ConfirmEmailPage = () => {
     };
 
     confirmEmail();
-  }, [search, navigate]);
+  }, [search]);
 
   return <div>Подтверждение...</div>;
 };

@@ -159,7 +159,7 @@ export function DayCalendar({
                   borderLeft: `4px solid ${eventColor}`,
                 }}
               >
-                <div className="flex items-start justify-between mb-1">
+                <div className="flex items-center flex-row gap-3 mb-1">
                   <h4
                     className="text-[#4A403A]"
                     style={{
@@ -168,24 +168,19 @@ export function DayCalendar({
                   >
                     {event.title}
                   </h4>
-                  <div
+                  {/* <div
                     className="w-3 h-3 rounded-full flex-shrink-0 ml-2"
                     style={{
                       backgroundColor: eventColor,
                     }}
-                  />
-                </div>
-                <p className="text-sm text-[#4A403A]/70 mb-1">
-                  {formatTime(event.startDate)}
-                  {event.endDate
-                    ? `-${formatTime(event.endDate)}`
-                    : ` - весь день`}
-                </p>
-                {event.address && (
-                  <p className="text-sm text-[#4A403A]/60">
-                    📍 {event.address}
+                  /> */}
+                  <p className="text-sm text-[#4A403A]/70 mb-1">
+                    {formatTime(event.startDate)}
+                    {event.endDate
+                      ? `-${formatTime(event.endDate)}`
+                      : ` - весь день`}
                   </p>
-                )}
+                </div>
               </div>
             );
           })}

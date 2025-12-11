@@ -27,6 +27,34 @@ const PreviewContent = ({ info, onEdit, onClose }: PreviewContentProps) => {
     staleTime: 2 * 60 * 1000, // 2 минуты
   });
 
+  // const {
+  //   data: currentUserData,
+  //   isPending: currentUserPending,
+  //   isError: currentUserError,
+  // } = useQuery({
+  //   queryKey: ["currentUser"],
+  //   queryFn: usersApi.getProfile,
+  //   staleTime: 5 * 60 * 1000,
+  // });
+
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: (taskId: string) => tasksApi.delete(taskId),
+    onSuccess: () => {
+      onClose();
+      queryClient.setQueryData(
+        ["tasks"],
+        (old: { tasks: TaskViewModel[]; authors: UserViewModel[] }) => {
+          return { tasks: old.tasks.filter((t) => t.taskId != task.id) };
+        }
+      );
+    },
+    onError: (error) => {
+      console.error("Ошибка при удалении задачи:", error);
+    },
+  });
+
   if (isPending) {
     return <div>Загрузка...</div>;
   }
@@ -46,24 +74,6 @@ const PreviewContent = ({ info, onEdit, onClose }: PreviewContentProps) => {
     .filter(Boolean) as CategoryModel[];
 
   const mainCategoryId = taskCategories[0]?.id;
-
-  const queryClient = useQueryClient();
-
-  const deleteMutation = useMutation({
-    mutationFn: (taskId: string) => tasksApi.delete(taskId),
-    onSuccess: () => {
-      onClose();
-      queryClient.setQueryData(
-        ["tasks"],
-        (old: { tasks: TaskViewModel[]; authors: UserViewModel[] }) => {
-          return { tasks: old.tasks.filter((t) => t.taskId != task.id) };
-        }
-      );
-    },
-    onError: (error) => {
-      console.error("Ошибка при удалении задачи:", error);
-    },
-  });
 
   const handleDelete = () => {
     deleteMutation.mutate(task.id);

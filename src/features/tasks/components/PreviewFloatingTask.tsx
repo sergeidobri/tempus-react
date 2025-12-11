@@ -14,6 +14,7 @@ import {
 } from "@floating-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 export const PreviewFloatingTask = ({
   taskId,
@@ -22,6 +23,7 @@ export const PreviewFloatingTask = ({
   taskId: string;
   children: React.ReactNode;
 }) => {
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
 
   const {
@@ -36,10 +38,12 @@ export const PreviewFloatingTask = ({
     enabled: open, // грузим только когда поповер открыт
   });
 
+  const placement = isMobile ? "bottom-start" : "right-start";
+
   const { refs, floatingStyles, context } = useFloating({
     open,
     onOpenChange: setOpen,
-    placement: "right-start",
+    placement,
     whileElementsMounted: autoUpdate,
     middleware: [
       offset(8),
@@ -67,7 +71,7 @@ export const PreviewFloatingTask = ({
 
       {open && (
         <div
-          ref={refs.setFloating}
+          ref={refs.setFloating} // eslint-disable-line react-hooks/refs
           style={floatingStyles}
           {...getFloatingProps()}
           className="z-50 max-w-xs w-80 bg-white shadow-lg rounded-md p-4 border"

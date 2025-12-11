@@ -5,7 +5,7 @@ import { useLocationStore } from "@/store/locationStore";
 import { getCategoryColor } from "@/utils/calendar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CategoryItem } from "../ui/CategoryItem";
 import type { CategoryModel } from "@/types/tasks";
 
@@ -26,6 +26,7 @@ const SettingsModal = ({ onClose }: SettingsModalProps) => {
   const [isCityEditing, setIsCityEditing] = useState(false);
   const [suggestions, setSuggestions] = useState<CityObject[]>([]);
   const { city, country, setLocation } = useLocationStore();
+  const timeoutRef = useRef<number | null>(null);
 
   const startEditing = () => {
     setQuery(city || "");
@@ -38,21 +39,43 @@ const SettingsModal = ({ onClose }: SettingsModalProps) => {
     setIsCityEditing(false);
   };
 
-  useEffect(() => {
-    if (!query.trim()) {
-      setSuggestions([]);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setQuery(value);
+
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current);
     }
 
-    weatherApi.getGeocode({ prompt: query.trim() }).then((cities) => {
-      console.log(cities);
-      const uniqueCities = Array.from(
-        new Map(
-          cities.map((city) => [`${city.name}|${city.country}`, city])
-        ).values()
-      );
-      setSuggestions(uniqueCities);
-    });
-  }, [query]);
+    const id = window.setTimeout(async () => {
+      if (!value.trim()) {
+        setSuggestions([]);
+        return;
+      }
+
+      try {
+        const cities = await weatherApi.getGeocode({ prompt: value.trim() });
+        const uniqueCities = Array.from(
+          new Map(
+            cities.map((city) => [`${city.name}|${city.country}`, city])
+          ).values()
+        );
+        setSuggestions(uniqueCities);
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error("Geocoding error:", error);
+        }
+      }
+    }, 300);
+
+    timeoutRef.current = id;
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const handleSelect = (item: CityObject) => {
     setLocation(item.name, item.country, item.latitude, item.longitude);
@@ -107,7 +130,7 @@ const SettingsModal = ({ onClose }: SettingsModalProps) => {
           }
         );
       }
-      // Сбрасываем форму
+
       setNewCategoryName("");
       setNewCategoryColor("#3b82f6");
       setIsCreating(false);
@@ -164,7 +187,7 @@ const SettingsModal = ({ onClose }: SettingsModalProps) => {
               <input
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={handleInputChange}
                 placeholder="Введите город..."
                 className="w-full px-3 py-2 border border-[#CFA492] rounded-lg text-[#4A403A] focus:outline-none focus:ring-1 focus:ring-[#CFA492]"
                 autoFocus

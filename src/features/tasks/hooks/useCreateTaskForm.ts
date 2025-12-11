@@ -10,16 +10,17 @@ import { stringDateToISOString } from "@/utils/calendar";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TaskViewModel } from "@/types/tasks";
 import type { UserViewModel } from "@/types/users";
+import { AxiosError } from "axios";
 
 type UseCreateTaskFormProps = {
   onSuccess?: () => void;
-  onModalClose?: () => void;
+  // onModalClose?: () => void;
   initialDate?: Date;
 };
 
 export const useCreateTaskForm = ({
   onSuccess,
-  onModalClose,
+  // onModalClose,
 }: UseCreateTaskFormProps = {}) => {
   const queryClient = useQueryClient();
 
@@ -42,12 +43,24 @@ export const useCreateTaskForm = ({
       );
 
       onSuccess?.();
-      onModalClose?.();
+      // onModalClose?.();
       form.reset();
     },
-    onError: (error: any) => {
-      console.error("Failed to create task", error);
-      const message = error.response?.data?.message || "Ошибка создания задачи";
+    onError: (error) => {
+      let message = "Неправильный логин или пароль";
+
+      if (error instanceof AxiosError) {
+        message =
+          error.response?.data?.message || "Неправильный логин или пароль";
+      } else if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error
+      ) {
+        const err = error as { response?: { data?: { message?: string } } };
+        message =
+          err.response?.data?.message || "Неправильный логин или пароль";
+      }
       form.setError("root", { message });
     },
   });

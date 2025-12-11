@@ -1,8 +1,9 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+
 import { useCreateTaskForm } from "@/features/tasks/hooks/useCreateTaskForm";
 import type { UserViewModel } from "@/types/users";
 import {
   forwardRef,
-  useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -29,7 +30,6 @@ interface TaskFormProps {
   mode: EventModalMode;
   taskId: string | null;
   onClose: () => void;
-  onReset?: () => void;
 }
 
 export interface TaskFormHandle {
@@ -84,14 +84,6 @@ const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
       enabled: mode === "edit" && !!taskId,
     });
 
-    const onModalClose = () => {
-      setSelectedCategoryIds([]);
-      setSelectedUsers([]);
-      setShowAdditionalFields(false);
-      setNoColor(true);
-      setFullDay(false);
-    };
-
     const {
       reset,
       register,
@@ -100,107 +92,50 @@ const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
       formState: { errors, isSubmitting },
     } = useCreateTaskForm({
       onSuccess: onClose,
-      onModalClose: onModalClose,
     });
 
-    useEffect(() => {
-      if (mode === "create") {
-        // Сброс при создании (на всякий случай)
-        reset();
-        setSelectedUsers([]);
-        setSelectedCategoryIds([]);
-        setShowAdditionalFields(false);
-        setFullDay(false);
-        setNoColor(true);
-        return;
-      }
-
-      // Режим редактирования
-      if (mode === "edit" && taskData) {
-        const task = taskData.task;
-
-        reset({
-          title: task.title || "",
-          address: task.address || "",
-          description: task.description || "",
-          // Даты:
-          startDate: task.startDate ? format(task.startDate, "yyyy-MM-dd") : "",
-          startTime: task.startDate ? format(task.startDate, "HH:mm") : "",
-          endDate: task.endDate ? format(task.endDate, "yyyy-MM-dd") : "",
-          endTime: task.endDate ? format(task.endDate, "HH:mm") : "",
-          fullDay: task.endDate == null,
-          color: task.color || null,
-        });
-
-        // 2. Участники
-        const shares = task.shares || [];
-        const users = taskData.users || [];
-        const sharedUsers = shares
-          .map((share) => users.find((u) => u.id === share.sharedWithUserId))
-          .filter(Boolean) as UserViewModel[];
-        setSelectedUsers(sharedUsers);
-
-        // 3. Категории
-        const categories = task.categories || [];
-        const categoryIds = categories
-          .sort((a, b) => {
-            return a.priority - b.priority;
-          })
-          .map((link) => link.categoryId);
-        setSelectedCategoryIds(categoryIds);
-
-        // 4. Доп. поля
-        setShowAdditionalFields(true);
-
-        // 5. Full day
-        const isFullDay = !task.endDate;
-        setFullDay(isFullDay);
-
-        // 6. Цвет
-        setNoColor(!task.color);
-      }
-    }, [mode, taskData, reset]);
-
-    const handleReset = useCallback(() => {
-      reset();
-      onModalClose();
-    }, []);
-
-    useImperativeHandle(ref, () => ({ reset: handleReset }), [handleReset]);
-
-    useEffect(() => {
-      if (
-        searchQuery.lastIndexOf("@") != -1 &&
-        searchQuery.lastIndexOf("@") == searchQuery.indexOf("@") &&
-        searchQuery.charAt(searchQuery.length - 1) == "@"
-      ) {
-        usersApi
-          .matchEmails({ emailPrefix: searchQuery })
-          .then((response) => setAvailableUsers(response.users))
-          .catch(() => setAvailableUsers([]));
-      } else if (searchQuery.indexOf("@") == -1) {
-        setAvailableUsers([]);
-      }
-    }, [searchQuery]);
-
-    useEffect(() => {
-      if (!isSharePopoverOpen && !isCategoryPopoverOpen) return;
-
-      const handleResize = () => {
-        setIsSharePopoverOpen(false);
-        setIsCategoryPopoverOpen(false);
-      };
-
-      window.addEventListener("resize", handleResize);
-      window.addEventListener("orientationchange", handleResize);
-
-      return () => {
-        window.removeEventListener("resize", handleResize);
-        window.removeEventListener("orientationchange", handleResize);
-      };
-    }, [isSharePopoverOpen, isCategoryPopoverOpen]);
-
     const queryClient = useQueryClient();
+
+    useEffect(() => {
+      // Режим редактирования
+      if (mode === "edit") {
+        if (taskData?.task) {
+          const task = taskData.task;
+
+          const shares = task.shares || [];
+          const users = taskData.users || [];
+          const sharedUsers = shares
+            .map((share) => users.find((u) => u.id === share.sharedWithUserId))
+            .filter(Boolean) as UserViewModel[];
+
+          const categoryIds = (task.categories || [])
+            .sort((a, b) => a.priority - b.priority)
+            .map((link) => link.categoryId);
+
+          const isFullDay = !task.endDate;
+          const hasColor = !!task.color;
+
+          reset({
+            title: task.title || "",
+            address: task.address || "",
+            description: task.description || "",
+            startDate: task.startDate
+              ? format(task.startDate, "yyyy-MM-dd")
+              : "",
+            startTime: task.startDate ? format(task.startDate, "HH:mm") : "",
+            endDate: task.endDate ? format(task.endDate, "yyyy-MM-dd") : "",
+            endTime: task.endDate ? format(task.endDate, "HH:mm") : "",
+            fullDay: isFullDay,
+            color: task.color || null,
+          });
+          setSelectedUsers(sharedUsers);
+          setSelectedCategoryIds(categoryIds);
+          setShowAdditionalFields(true);
+          setFullDay(isFullDay);
+          setNoColor(!hasColor);
+        }
+      }
+    }, [mode, taskData?.task, taskData?.users, reset]);
 
     const updateMutation = useMutation({
       mutationFn: ({ id, data }: { id: string; data: UpdateTaskRequest }) =>
@@ -229,7 +164,7 @@ const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
         queryClient.refetchQueries({ queryKey: ["task", taskId] });
 
         onClose();
-        onModalClose();
+        // onModalClose();
       },
     });
 
@@ -305,7 +240,6 @@ const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
         }
       }
 
-      console.log(payload);
       if (mode === "create") {
         onSubmit(payload);
       } else if (mode === "edit" && taskId) {
@@ -317,10 +251,56 @@ const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
           noColor,
         });
 
-        console.log(updatePayload);
         updateMutation.mutate({ id: taskId, data: updatePayload });
       }
     };
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        reset: () => {
+          reset();
+          setSelectedUsers([]);
+          setSelectedCategoryIds([]);
+          setShowAdditionalFields(false);
+          setFullDay(false);
+          setNoColor(true);
+        },
+      }),
+      [reset]
+    );
+
+    useEffect(() => {
+      if (!isSharePopoverOpen && !isCategoryPopoverOpen) return;
+
+      const handleResize = () => {
+        setIsSharePopoverOpen(false);
+        setIsCategoryPopoverOpen(false);
+      };
+
+      window.addEventListener("resize", handleResize);
+      window.addEventListener("orientationchange", handleResize);
+
+      return () => {
+        window.removeEventListener("resize", handleResize);
+        window.removeEventListener("orientationchange", handleResize);
+      };
+    }, [isSharePopoverOpen, isCategoryPopoverOpen]);
+
+    useEffect(() => {
+      if (
+        searchQuery.lastIndexOf("@") != -1 &&
+        searchQuery.lastIndexOf("@") == searchQuery.indexOf("@") &&
+        searchQuery.charAt(searchQuery.length - 1) == "@"
+      ) {
+        usersApi
+          .matchEmails({ emailPrefix: searchQuery })
+          .then((response) => setAvailableUsers(response.users))
+          .catch(() => setAvailableUsers([]));
+      } else if (searchQuery.indexOf("@") == -1) {
+        setAvailableUsers([]);
+      }
+    }, [searchQuery]);
 
     if (mode === "edit" && isTaskLoading) {
       return (
@@ -333,7 +313,6 @@ const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
     if (mode === "edit" && isTaskError) {
       return <div className="text-red-500">Не удалось загрузить задачу</div>;
     }
-
     return (
       <form
         onSubmit={handleSubmit(onSubmitWrapper)}
@@ -897,7 +876,7 @@ const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
           <button
             type="button"
             onClick={() => {
-              handleReset();
+              // handleReset();
               onClose();
             }}
             disabled={isSubmitting}

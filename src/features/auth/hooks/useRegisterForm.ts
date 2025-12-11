@@ -6,6 +6,7 @@ import {
 } from "@/features/auth/schemas/registerSchema";
 import { authApi } from "@/api/auth/api";
 import { navigate } from "@/utils/navigate";
+import { AxiosError } from "axios";
 
 export const useRegisterForm = () => {
   const form = useForm<RegisterFormData>({
@@ -20,21 +21,29 @@ export const useRegisterForm = () => {
   });
 
   const onSubmit = async (data: RegisterFormData) => {
-    console.log("start submitting");
     try {
-      console.log(data);
       await authApi.register({
         email: data.email,
         password: data.password,
         firstName: "User",
         lastName: "1337",
       });
-
-      console.log("success");
       navigate("/auth/confirm-email-sent");
-    } catch (error: any) {
-      console.log("error", error);
-      const message = error.response?.data?.message || "Неудачная авторизация";
+    } catch (error) {
+      let message = "Неправильный логин или пароль";
+
+      if (error instanceof AxiosError) {
+        message =
+          error.response?.data?.message || "Неправильный логин или пароль";
+      } else if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error
+      ) {
+        const err = error as { response?: { data?: { message?: string } } };
+        message =
+          err.response?.data?.message || "Неправильный логин или пароль";
+      }
       form.setError("root", { message });
     }
   };

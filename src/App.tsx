@@ -83,7 +83,7 @@ export default function App() {
           </div>
 
           {/* Right Column - Main Calendar */}
-          <div className="space-y-4">
+          <div className="space-y-4 hidden lg:block">
             {/* Calendar View */}
             {viewMode === "month" && (
               <MonthCalendar

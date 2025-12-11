@@ -7,13 +7,11 @@ import {
   getCategoryColorById,
   getFallBackColor,
 } from "../../utils/calendar";
-import { Sun } from "lucide-react";
 import { PreviewFloatingTask } from "@/features/tasks/components/PreviewFloatingTask";
 import { useQuery } from "@tanstack/react-query";
 import { categoriesApi } from "@/api/categories/api";
 import { useLocationStore } from "@/store/locationStore";
 import { weatherApi } from "@/api/weather/api";
-import { useEffect, useState } from "react";
 
 interface DailyScheduleProps {
   selectedDate: Date;
@@ -26,9 +24,7 @@ export function DailySchedule({
   events,
   onEventClick,
 }: DailyScheduleProps) {
-  const fallbackNumber = -481516;
   const { lat, lon, city } = useLocationStore();
-  const [currentTemp, setCurrentTemp] = useState<number>(fallbackNumber);
 
   const { data, isPending, isError } = useQuery({
     queryKey: ["categories"],
@@ -49,12 +45,6 @@ export function DailySchedule({
     retry: 1,
   });
 
-  useEffect(() => {
-    if (!isWeatherPending && weatherData?.current) {
-      setCurrentTemp(weatherData.current.temperature_2m);
-    }
-  }, [weatherData]);
-
   const dayEvents = getEventsForDay(events, selectedDate);
   const isTodayDate = isToday(selectedDate);
 
@@ -65,8 +55,10 @@ export function DailySchedule({
         <h3 className="text-[#4A403A]">Расписание</h3>
         <div className="flex items-center justify-end gap-2 text-sm text-[#4A403A]">
           <span className="text-end">{city}</span>
-          {currentTemp !== fallbackNumber && (
-            <span>{Number(currentTemp).toFixed(0)}°C</span>
+          {!isWeatherPending && weatherData?.current && (
+            <span>
+              {Number(weatherData.current.temperature_2m).toFixed(0)}°C
+            </span>
           )}
         </div>
       </div>

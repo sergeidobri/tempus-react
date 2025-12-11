@@ -221,3 +221,27 @@
 html {
   font-size: var(--font-size);
 }
+
+.super-small {
+  min-width: 20px;
+  padding: 3px;
+  overflow: hidden;
+}
+
+.super-small:hover {
+  width: 120px;
+  padding: 8px;
+  overflow: visible;
+}
+
+.small {
+  min-width: 60px;
+  padding: 3px;
+  overflow: hidden;
+}
+
+.small:hover {
+  width: 120px;
+  padding: 8px;
+  overflow: visible;
+}

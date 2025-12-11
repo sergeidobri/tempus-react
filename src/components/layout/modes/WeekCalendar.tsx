@@ -1,14 +1,12 @@
 import {
-  getEventsForDay,
   isSameDay,
   hexToRgba,
-  formatTimeFromString as formatTime,
   getCategoryColorById,
   getFallBackColor,
 } from "@/utils/calendar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import SetViewButtons from "@/components/ui/SetViewButtons";
-import { type ViewMode } from "@/App";
+import type { ViewMode } from "@/App";
 import type { TaskViewModel } from "@/types/tasks";
 import { useQuery } from "@tanstack/react-query";
 import { categoriesApi } from "@/api/categories/api";
@@ -35,7 +33,7 @@ export function WeekCalendar({
   const { data, isPending, isError } = useQuery({
     queryKey: ["categories"],
     queryFn: categoriesApi.getAll,
-    staleTime: 2 * 60 * 1000, // 2 минуты
+    staleTime: 2 * 60 * 1000,
   });
 
   const today = new Date();
@@ -46,40 +44,46 @@ export function WeekCalendar({
     const monday = new Date(date);
     monday.setDate(diff);
 
-    const week: Date[] = [];
-    for (let i = 0; i < 7; i++) {
-      const weekDay = new Date(monday);
-      weekDay.setDate(monday.getDate() + i);
-      week.push(weekDay);
-    }
-    return week;
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return d;
+    });
   };
 
   const weekDates = getWeekDates(currentDate);
   const weekDays = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"];
-
-  // Generate time slots from 00:00 to 23:00
-  const timeSlots = Array.from({ length: 24 }, (_, i) => {
-    const hour = i;
-    return `${hour.toString().padStart(2, "0")}:00`;
-  });
+  const months = [
+    "Янв",
+    "Фев",
+    "Мар",
+    "Апр",
+    "Май",
+    "Июн",
+    "Июл",
+    "Авг",
+    "Сен",
+    "Окт",
+    "Ноя",
+    "Дек",
+  ];
 
   const getEventPosition = (event: TaskViewModel) => {
-    const start = new Date(event.startDate);
-    const end = event.endDate
+    const startDate = new Date(event.startDate);
+    const endDate = event.endDate
       ? new Date(event.endDate)
-      : new Date(start.getFullYear(), start.getMonth(), start.getDate() + 1); // 00:00 следующего дня, т.е. на весь текущий день
+      : new Date(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate() + 1
+        );
 
-    const durationMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
-
-    if (durationMinutes <= 0) {
-      return { height: "8px" };
-    }
-
-    const height = (durationMinutes / 60) * 90;
+    const startMinutes = startDate.getHours() * 60 + startDate.getMinutes();
+    const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60);
 
     return {
-      height: `${height}px`,
+      top: `${(startMinutes / 60) * 80 + 90}px`,
+      height: `${Math.max((duration / 60) * 80, 40)}px`,
     };
   };
 
@@ -90,31 +94,20 @@ export function WeekCalendar({
   const getDateRange = () => {
     const start = weekDates[0];
     const end = weekDates[6];
-    const months = [
-      "Янв",
-      "Фев",
-      "Мар",
-      "Апр",
-      "Май",
-      "Июн",
-      "Июл",
-      "Авг",
-      "Сен",
-      "Окт",
-      "Ноя",
-      "Дек",
-    ];
-
     if (start.getMonth() === end.getMonth()) {
-      return `${start.getDate()}-${end.getDate()} ${
-        months[start.getMonth()]
-      }, ${start.getFullYear()}`;
+      return `${start.getDate()}-${end.getDate()} ${months[start.getMonth()]}, ${start.getFullYear()}`;
     } else {
-      return `${start.getDate()} ${
-        months[start.getMonth()]
-      } - ${end.getDate()} ${months[end.getMonth()]}, ${start.getFullYear()}`;
+      return `${start.getDate()} ${months[start.getMonth()]} - ${end.getDate()} ${months[end.getMonth()]}, ${start.getFullYear()}`;
     }
   };
+
+  // Сгруппируем события по дню недели
+  const eventsByDay = weekDates.map((day) =>
+    events.filter((event) => {
+      const eventDate = new Date(event.startDate);
+      return isSameDay(eventDate, day);
+    })
+  );
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border border-[#FFE3C7]">
@@ -138,117 +131,102 @@ export function WeekCalendar({
         </div>
       </div>
 
-      {/* Week Grid */}
-      <div className="grid grid-cols-[60px_repeat(7,1fr)] overflow-hidden">
-        {/* Header Row */}
-        <div className="bg-white p-2" />
-        {weekDates.map((date, idx) => {
-          const isTodayDate = isSameDay(date, today);
-          const isSelected = isSameDay(date, selectedDate);
-          const isWeekendDay = idx >= 5;
+      {/* Week Grid — без gap */}
+      <div className="grid grid-cols-[80px_repeat(7,1fr)]">
+        {" "}
+        {/* Убран gap-4 */}
+        {/* Time Labels */}
+        <div className="relative mt-[10px]">
+          {Array.from({ length: 24 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="absolute text-sm text-[#a4a4a4] text-right -mt-3"
+              style={{ top: `${idx * 80 + 90}px`, right: 0 }}
+            >
+              {`${idx.toString().padStart(2, "0")}:00`}
+            </div>
+          ))}
+        </div>
+        {/* Day Columns */}
+        {weekDates.map((day, dayIndex) => {
+          const isTodayDate = isSameDay(day, today);
+          const isSelected = isSameDay(day, selectedDate);
+          const dayEvents = eventsByDay[dayIndex];
 
           return (
-            <button
-              key={idx}
-              onClick={() => onDateSelect(date)}
-              className={`
-                bg-white p-2 text-center transition-colors
-                ${isSelected && !isTodayDate ? "bg-[#FFF5EB]" : ""}
-                hover:bg-[#cfa491]/10
-              `}
+            <div
+              key={dayIndex}
+              className={`relative border-l min-h-[1920px] bg-white ${
+                isTodayDate || isSelected ? "bg-[#FFF5EB]" : ""
+              }`}
+              onClick={() => onDateSelect(day)}
             >
-              <div className="text-xs text-[#4A403A]/60 mb-1">
-                {weekDays[idx]}
-              </div>
               <div
-                className={`
-                  text-sm
-                  ${
+                className="sticky top-0 bg-white z-10 p-2 text-center border-b flex flex-col items-center justify-center h-24" // h-24 = 96px, но мы используем padding
+                style={{ height: "90px", lineHeight: "1.2" }}
+              >
+                <div className="text-xs text-[#4A403A]/60 mb-1">
+                  {weekDays[dayIndex]}
+                </div>
+                <div
+                  className={`text-sm ${
                     isTodayDate
                       ? "w-7 h-7 mx-auto rounded-full bg-[#CFA492] text-white flex items-center justify-center"
-                      : ""
-                  }
-                  ${
-                    isWeekendDay && !isTodayDate
-                      ? "text-[#CFA492]"
-                      : "text-[#4A403A]"
-                  }
-                `}
-              >
-                {date.getDate()}
+                      : isSelected
+                        ? "text-[#CFA492]"
+                        : "text-[#4A403A]"
+                  }`}
+                >
+                  {day.getDate()}
+                </div>
               </div>
-            </button>
+              {Array.from({ length: 24 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="absolute left-0 right-0 border-t"
+                  style={{ top: `${idx * 80 + 90}px` }}
+                />
+              ))}
+
+              {dayEvents.map((event) => {
+                const position = getEventPosition(event);
+                const eventColor = event.color
+                  ? event.color
+                  : !isPending && !isError
+                    ? getCategoryColorById(event.category1Id, data?.categories)
+                    : getFallBackColor();
+
+                return (
+                  <div
+                    key={event.taskId}
+                    className="absolute left-0 right-0 rounded-lg px-2 py-1 shadow-sm cursor-pointer hover:shadow-md transition-shadow z-10 overflow-hidden"
+                    style={{
+                      ...position,
+                      backgroundColor: `${hexToRgba(eventColor, 0.1)}`,
+                      borderLeft: `4px solid ${eventColor}`,
+                      display: "flex",
+                      alignItems: "center",
+                      fontSize: "12px",
+                      lineHeight: "16px",
+                    }}
+                  >
+                    <span
+                      className="text-[#4A403A] truncate"
+                      style={{
+                        color: eventColor,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {event.title}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           );
         })}
-
-        {/* Time Slots */}
-        {timeSlots.map((time) => (
-          <div key={time} className="contents">
-            {/* Time Label */}
-            <div className="bg-white p-2 text-xs text-[#4A403A]/60 text-right border-t">
-              {time}
-            </div>
-
-            {/* Day Cells */}
-            {weekDates.map((date, dayIdx) => {
-              const dayEvents = getEventsForDay(events, date);
-              const [hour] = time.split(":").map(Number);
-
-              return (
-                <div
-                  key={`${dayIdx}-${time}`}
-                  className="bg-white border-t border-l min-h-[90px] relative hover:bg-[#cfa491]/10 transition-colors cursor-pointer"
-                  onClick={() => onDateSelect(date)}
-                >
-                  {/* Render events that start in this hour */}
-                  {dayEvents
-                    .filter((event) => {
-                      const startHour = new Date(event.startDate).getHours();
-                      return startHour === hour;
-                    })
-                    .map((event, eventIdx) => {
-                      const eventColor = event.color
-                        ? event.color
-                        : !isPending && !isError
-                          ? getCategoryColorById(
-                              event.category1Id,
-                              data.categories
-                            )
-                          : getFallBackColor();
-                      const position = getEventPosition(event);
-                      return (
-                        <div
-                          key={event.taskId}
-                          className="absolute left-0 right-0 mx-1 px-2 py-1 rounded text-xs overflow-hidden"
-                          style={{
-                            ...position,
-                            backgroundColor: `${hexToRgba(eventColor, 0.2)}`,
-                            borderLeft: `3px solid ${eventColor}`,
-                            zIndex: 10 + eventIdx,
-                          }}
-                        >
-                          <div
-                            className="truncate"
-                            style={{
-                              color: eventColor,
-                            }}
-                          >
-                            {event.title}
-                          </div>
-                          <div className="text-[10px] opacity-70">
-                            {formatTime(event.startDate)}
-                            {event.endDate
-                              ? `-${formatTime(event.endDate)}`
-                              : " - весь день"}
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              );
-            })}
-          </div>
-        ))}
       </div>
     </div>
   );

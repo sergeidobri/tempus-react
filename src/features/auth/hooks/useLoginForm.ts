@@ -7,6 +7,7 @@ import {
 import { authApi } from "@/api/auth/api";
 import { useAuthStore } from "@/store/authStore";
 import { navigate } from "@/utils/navigate";
+import { AxiosError } from "axios";
 
 export const useLoginForm = () => {
   const form = useForm<LoginFormData>({
@@ -28,9 +29,22 @@ export const useLoginForm = () => {
       useAuthStore.getState().setAccessToken(response.data.accessToken);
 
       navigate("/");
-    } catch (error: any) {
-      const message =
-        error.response?.data?.message || "Неправильный логин или пароль";
+    } catch (error) {
+      let message = "Неправильный логин или пароль";
+
+      if (error instanceof AxiosError) {
+        message =
+          error.response?.data?.message || "Неправильный логин или пароль";
+      }
+      else if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error
+      ) {
+        const err = error as { response?: { data?: { message?: string } } };
+        message =
+          err.response?.data?.message || "Неправильный логин или пароль";
+      }
       form.setError("root", { message });
     }
   };
